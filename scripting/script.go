@@ -291,14 +291,7 @@ func mapifyStruct(in interface{}) interface{} {
 
 		// work a little to get structs/mappable objects turned into maps
 		sliceutil.Each(in, func(i int, elem interface{}) error {
-			if m, ok := elem.(mappable); ok {
-				elems[i] = m.ToMap()
-			} else if typeutil.IsStruct(elem) {
-				elems[i] = structs.Map(elem)
-			} else {
-				elems[i] = elem
-			}
-
+			elems[i] = mapifyStruct(elem)
 			return nil
 		})
 
