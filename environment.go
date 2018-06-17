@@ -84,6 +84,17 @@ func (self *Environment) UnregisterModule(prefix string) {
 	delete(self.modules, prefix)
 }
 
+// Retrieve a copy of the currently registered modules.
+func (self *Environment) Modules() map[string]Module {
+	modules := make(map[string]Module)
+
+	for name, module := range self.modules {
+		modules[name] = module
+	}
+
+	return modules
+}
+
 // Registers a function to handle a specific REPL command.  If command is an empty string, the function will be called
 // for each command entered into the REPL.
 func (self *Environment) RegisterCommandHandler(command string, handler InteractiveHandlerFunc) error {
