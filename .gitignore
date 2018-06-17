@@ -1,0 +1,13 @@
+.DS_Store
+*.dot
+/env
+*.pyc
+*.egg-info
+/build
+/dist
+/*.png
+/.cache
+/*.fs
+/bin
+/*.peg
+/vendor
