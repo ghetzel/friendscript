@@ -2,7 +2,7 @@
 
 ## tl;dr
 
-Friendscript is a domain-specific imperative scripting language used for performing automatic tasks within a web browser; such as loading URLs, searching the DOM for elements and content, and performing page rendering tasks like screenshots and video captures.  Scripts are plain text files that contain a series of commands that are executed linearly in a blocking manner, with a bias towards exiting upon encountering errors.  Logical operations, branching, and looping are supported as native language-level constructs for the purpose of building flexible and robust automation scripts.
+Friendscript is a domain-specific imperative scripting language that can be embedded within third-party applications and customized to suit the needs of the application.  Scripts are plain text files that contain a series of commands that are executed linearly, and causing the script to exit when command errors are encountered.  Logical operations, branching, and looping are supported as native language-level constructs for the purpose of building flexible and robust scripts that are nonetheless easy to read and use.
 
 ## Commands
 
@@ -22,7 +22,7 @@ Commands have a variable syntax depending on the required arguments and options 
 - Standalone command with no arguments or options (arity 0):
 
   ```
-  wait_for_load
+  fail
   ```
 
 - Command with argument, no options (arity 1):
@@ -34,12 +34,12 @@ Commands have a variable syntax depending on the required arguments and options 
 - Command with argument and options (arity 2+):
 
   ```
-  field "input[type='password']" {
-      value: "secret"
+  env "USER" {
+      required: true,
   }
   ```
 
-- Command with argument and multiple options of all types (arity n):
+- Command with argument and multiple options of all types (arity 2+):
 
   ```
   example "argument" {
@@ -74,34 +74,15 @@ Commands have a variable syntax depending on the required arguments and options 
 
 ### Command Output
 
-By default, every command that runs will save a resulting value (which is command-specific) to a variable in the current scope called `$result`.  So, without doing anything else, the following code will do something useful:
+By default, every command that runs will discard its output (if any) unless a destination variable is specified.  You can explicitly save the results of commands into named variables with the command assignment operator (`->`).
 
 ```
-go "https://google.com"
-log "Got HTTP {result[status]} for {result[url]}"
+# does nothing useful
+env "USER"
+
+# Saves the value of the "USER" environment variable to the $user variable
+env "USER" -> $user
 ```
-
-The only caveat is that `$result` is updated for _every_ command, which means that if you run this:
-
-```
-go "https://google.com"
-select "style"
-
-log "Got HTTP {result[status]} for {result[url]}"
-```
-
-...it might not do what you expect it to.  The value of `$result` from the `go` command is replaced by the the return value of the `select` command, and so the subsequent `log` command will be expecting fields and data that aren't there.
-
-To mitigate this, you can explicitly save the results of commands into named variables with the command assignment operator (`->`).  This is a working version of the above snippet:
-
-```
-go "https://google.com" -> $google
-select "style"
-
-log "Got HTTP {google[status]} for {google[url]}"
-```
-
-We've saved the output of the `go` command to a new variable `$google`, but the following `select` command will still put its results in `$result`.  Therefore, the `log` command (reading from the `$google` value) will print the expected information.
 
 ## Whitespace Handling
 
@@ -169,7 +150,7 @@ log "{but_only_things_in_here_can_see_me}"  # ERROR!!
 
 ## String Interpolation
 
-When strings wrapped in double quotes (`"yay"`) are encountered, they are automatically scanned for Python-style interpolation sequences wrapped in curly braces (`{}`).  Single-quoted strings (`'yay'`) are **not** interpolated, and are returned exactly as entered.
+When strings wrapped in double quotes (`"yay"`) are encountered, they are automatically scanned for interpolation sequences wrapped in curly braces (`{}`).  Single-quoted strings (`'yay'`) are **not** interpolated, and are returned exactly as entered.
 
 When interpolating, all variables in the current scope and any parent scopes (recursively up to the global level) are made available for interpolation within any string, whether it is used as the value of a variable, command argument, command option, or condition expression.  Using the variables from above, here are some string patterns and their value:
 
@@ -182,15 +163,12 @@ When interpolating, all variables in the current scope and any parent scopes (re
 | `"Test {my[cool][value]}"`        | `"Test yay!"`               |
 
 
-For more information on the supported formatting options, see the documentation on Python's [Format Specification Mini-Language](https://docs.python.org/2/library/string.html#formatspec).
-
-
 ## Multiline String Literals (Heredocs)
 
 Friendscript supports a syntax for entering large string values that span multiple lines whose syntax may frequently conflict with Friendscript's own.  These are sometimes referred to as "heredocs", and are particularly useful for including the source code of other languages inside of an automation script.  Here is an example of some inline Javascript:
 
 ```
-javascript begin
+example_javascript begin
   var tag = document.getElementById('cool_tag');
 
   if(tag) {
@@ -199,7 +177,7 @@ javascript begin
 end
 ```
 
-Everything between the `begin` and `end` statements is part of the string value passed as the first argument to the `javascript` command.  This syntax is accepted wherever a string is, including setting variables and as command option values.
+Everything between the `begin` and `end` statements is part of the string value passed as the first argument to the `example_javascript` command.  This syntax is accepted wherever a string is, including setting variables and as command option values.
 
 ## Conditional Statements
 
@@ -351,19 +329,3 @@ $test = 'yay'
 include "other-friend.fs"
 include "more-friends/*.fs"
 ```
-
-
-## Event Handlers
-
-As your script interacts with the browser, various events are generated for a multitude of actions involved in the process of loading and displaying a web page.  Friendscript is able to receive these events and perform actions when they occur.  Actions can include any valid sequence of commands or statements.
-
-```
-on "Network.responseReceived" {
-    log "{event[name]}:"
-    log $event.data
-}
-```
-
-This event handler will fire whenever a "Network.responseReceived" event is received (which can be quite often), and log the event's data object.  Uses for event handlers can range from simple debugging and inspection of a web request or page change events, to data collection and reporting (e.g.: which URLs/domains is this page talking to?)
-
-
