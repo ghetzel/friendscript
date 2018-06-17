@@ -95,6 +95,21 @@ func (self *Environment) Modules() map[string]Module {
 	return modules
 }
 
+// Retrieve the named module.
+func (self *Environment) Module(name string) (Module, bool) {
+	module, ok := self.modules[name]
+	return module, ok
+}
+
+// Retrieve the named module, or panic if it is not registered.
+func (self *Environment) MustModule(name string) Module {
+	if module, ok := self.modules[name]; ok {
+		return module
+	} else {
+		panic(fmt.Sprintf("Module '%v' is not registered to this Friendscript environment", name))
+	}
+}
+
 // Registers a function to handle a specific REPL command.  If command is an empty string, the function will be called
 // for each command entered into the REPL.
 func (self *Environment) RegisterCommandHandler(command string, handler InteractiveHandlerFunc) error {
