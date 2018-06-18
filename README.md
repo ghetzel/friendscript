@@ -23,7 +23,7 @@ Read the language introduction and overview [here](docs/README.md)
 
 ## "But Grimace, why did you invent a completely new language?  Aren't there so many other powerful scripting langauges out there, and isn't doing so considered a little....unhinged?!"
 
-Short answer "Yes.", long answer "No, with a but..."
+Short answer, "yes" with an "if." Long answer, "no" with a "but."
 
 Truth be told, my original intent here was largely organized around being curious about language design, the level of difficulty in creating the syntax and logical structure of a language, and all-around just challenging myself to take the risk.
 
