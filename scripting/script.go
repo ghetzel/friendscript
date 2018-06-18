@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
+	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/ghetzel/go-stockutil/mathutil"
 	"github.com/ghetzel/go-stockutil/rxutil"
 	"github.com/ghetzel/go-stockutil/sliceutil"
@@ -283,6 +284,8 @@ func intIfYouCan(in interface{}) interface{} {
 
 // if the input is a struct, convert it into a map
 func mapifyStruct(in interface{}) interface{} {
+	maputil.UnmarshalStructTag = `json`
+
 	if m, ok := in.(mappable); ok {
 		return m.ToMap()
 
@@ -297,7 +300,7 @@ func mapifyStruct(in interface{}) interface{} {
 
 		return elems
 	} else if typeutil.IsStruct(in) {
-		return structs.Map(in)
+		return maputil.DeepCopy(in)
 	} else {
 		return in
 	}
