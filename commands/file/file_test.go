@@ -1,7 +1,6 @@
 package file
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -10,10 +9,22 @@ import (
 
 func TestFileOperations(t *testing.T) {
 	assert := require.New(t)
+	cmd := New(nil)
 
-	temp, err := ioutil.TempFile(``, ``)
+	temp, err := cmd.Temp(nil)
 	assert.NoError(err)
+
 	defer os.Remove(temp.Name())
 
-	cmd := New(nil)
+	assert.NoError(cmd.Write(temp, &WriteArgs{
+		Value: `Testing`,
+	}))
+
+	reopen, err := cmd.Open(temp.Name())
+	assert.NoError(err)
+
+	readback, err := cmd.Read(reopen)
+	assert.NoError(err)
+
+	assert.Equal(`Testing`, readback)
 }

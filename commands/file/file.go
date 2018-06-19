@@ -26,6 +26,21 @@ func New(scopeable utils.Scopeable) *Commands {
 	return cmd
 }
 
+type TempArgs struct {
+	// A string to prefix temporary filenames with
+	Prefix string `json:"prefix" default:"friendscript-"`
+}
+
+func (self *Commands) Temp(args *TempArgs) (*os.File, error) {
+	if args == nil {
+		args = &TempArgs{}
+	}
+
+	defaults.SetDefaults(args)
+
+	return ioutil.TempFile(``, args.Prefix)
+}
+
 func (self *Commands) Open(filename string) (*os.File, error) {
 	return os.Open(filename)
 }
