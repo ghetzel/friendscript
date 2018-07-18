@@ -59,8 +59,10 @@ func CallCommandFunction(from interface{}, name string, first interface{}, rest 
 						if argT.Kind() == reflect.Struct {
 							inputM := maputil.DeepCopy(inputs[i])
 
-							if err := maputil.TaggedStructFromMap(inputM, arguments[i], `json`); err != nil {
-								return nil, fmt.Errorf("Cannot populate %v: %v", arguments[i].Type(), err)
+							if len(inputM) > 0 && arguments[i].IsValid() {
+								if err := maputil.TaggedStructFromMap(inputM, arguments[i], `json`); err != nil {
+									return nil, fmt.Errorf("Cannot populate %v: %v", arguments[i].Type(), err)
+								}
 							}
 						} else {
 							return nil, fmt.Errorf("Map arguments can only be used to populate structs")
