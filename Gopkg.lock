@@ -38,8 +38,8 @@
     "typeutil",
     "utils"
   ]
-  revision = "0c7b5eb1f4a3bcaca7019ffead834ead57f88afb"
-  version = "1.5.19"
+  revision = "605ab9211ae6790b55a5f5134cbdbb2e72321b67"
+  version = "1.5.34"
 
 [[projects]]
   name = "github.com/ghetzel/uuid"
@@ -58,6 +58,12 @@
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+
+[[projects]]
+  name = "github.com/jbenet/go-base58"
+  packages = ["."]
+  revision = "6237cf65f3a6f7111cd8a42be3590df99a66bc7d"
+  version = "1.0.0"
 
 [[projects]]
   name = "github.com/jdkato/prose"
@@ -91,6 +97,12 @@
   name = "github.com/mcuadros/go-defaults"
   packages = ["."]
   revision = "e1c978be3307be96ef03a0bd25d719ab50d277e4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
 
 [[projects]]
   branch = "master"
@@ -156,6 +168,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "706c050b666d3a72a6c0f8b2ca8eae19cebc528e268c112cde6f33471828b7c3"
+  inputs-digest = "4848196ec485b2f72a9fda81e3711b62164a425b6aa02697febc0ab69b295ceb"
   solver-name = "gps-cdcl"
   solver-version = 1
