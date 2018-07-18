@@ -21,7 +21,7 @@ Read the language introduction and overview [here](docs/README.md)
 
 - [Embedding _Friendscript_ in a simple command line application](examples/command-line/main.go)
 
-## "But Grimace, why did you invent a completely new language?  Aren't there so many other powerful scripting langauges out there, and isn't doing so considered a little....unhinged?!"
+## "But Grimace, why did you invent a completely new language?  Aren't there so many other powerful scripting languages out there, and isn't doing so considered a little....unhinged?!"
 
 Short answer, "yes" with an "if." Long answer, "no" with a "but."
 
