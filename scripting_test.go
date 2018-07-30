@@ -478,6 +478,10 @@ func TestCommands(t *testing.T) {
 
 	assert.NoError(err)
 	assert.Equal(`es`, actual[`rv`])
+
+	actual, err = eval(`fmt::trim "test" -> $rv`)
+	assert.NoError(err)
+	assert.Equal(`es`, actual[`rv`])
 }
 
 func jsondiff(expected interface{}, actual interface{}) string {
