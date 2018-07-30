@@ -468,6 +468,18 @@ func TestLoops(t *testing.T) {
 	assert.Equal(expected, actual)
 }
 
+func TestCommands(t *testing.T) {
+	assert := require.New(t)
+
+	actual, err := eval(`fmt::trim "test" {
+		prefix: 't',
+		suffix: 't',
+	} -> $rv`)
+
+	assert.NoError(err)
+	assert.Equal(`es`, actual[`rv`])
+}
+
 func jsondiff(expected interface{}, actual interface{}) string {
 	if expectedJ, err := json.MarshalIndent(expected, ``, `  `); err == nil {
 		if actualJ, err := json.MarshalIndent(actual, ``, `  `); err == nil {

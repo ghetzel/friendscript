@@ -38,8 +38,8 @@
     "typeutil",
     "utils"
   ]
-  revision = "605ab9211ae6790b55a5f5134cbdbb2e72321b67"
-  version = "1.5.34"
+  revision = "0ccc4cd633243e4209ee47711113ae7a7d0ed6ab"
+  version = "1.5.36"
 
 [[projects]]
   name = "github.com/ghetzel/uuid"
@@ -168,6 +168,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4848196ec485b2f72a9fda81e3711b62164a425b6aa02697febc0ab69b295ceb"
+  inputs-digest = "697526c4de9eccf4e7139c87937fb7a319149a633a2598c6da45e6e7ad73aca2"
   solver-name = "gps-cdcl"
   solver-version = 1
