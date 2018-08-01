@@ -9,7 +9,7 @@ all: fmt deps test
 fmt:
 	@go list golang.org/x/tools/cmd/goimports || go get golang.org/x/tools/cmd/goimports
 	goimports -w $(LOCALS)
-	go generate -x .
+	go generate -x ./...
 
 deps:
 	@go list github.com/pointlander/peg || go get github.com/pointlander/peg

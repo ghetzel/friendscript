@@ -169,7 +169,7 @@ func TestAssignments(t *testing.T) {
     $ee8.always['finishing'].other['stuff'].too = true
     put "test {a}" -> $put_1
     put 'test {a}' -> $put_2
-	$put_3 = [1,2,3]`
+	put [1, 2, 3] -> $put_3`
 
 	actual, err := eval(script)
 
