@@ -152,6 +152,8 @@ func TestAssignments(t *testing.T) {
 			`two`:   `second`,
 			`three`: `third`,
 		},
+		`ulit1`: `\u2211`,
+		`ulit2`: "\u2211",
 	}
 
 	script := `# set variables of with values of every type
@@ -209,7 +211,9 @@ func TestAssignments(t *testing.T) {
 		one:   'first',
 		two:   'second',
 		three: 'third',
-	}`
+	}
+	$ulit1 = '\u2211'
+	$ulit2 = "\u2211"`
 
 	actual, err := eval(script)
 

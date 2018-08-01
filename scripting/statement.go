@@ -2,6 +2,8 @@ package scripting
 
 import (
 	"fmt"
+	"go/constant"
+	"go/token"
 	"regexp"
 	"strings"
 
@@ -86,8 +88,10 @@ func (self *Statement) s(node *node32) string {
 				return raw
 
 			case ruleStringInterpolated:
-				raw = strings.TrimPrefix(raw, `"`)
-				raw = strings.TrimSuffix(raw, `"`)
+				// use Golang's own string literal interpreter to handle escape sequences
+				// and unicode code points in the incoming string
+				raw = constant.StringVal(constant.MakeFromLiteral(raw, token.STRING, 0))
+
 				return self.Script().Scope().Interpolate(raw)
 
 			case ruleHeredoc:
