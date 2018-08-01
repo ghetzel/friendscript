@@ -196,7 +196,7 @@ CommandName
     <- ( Identifier SCOPE )? Identifier
 
 CommandFirstArg
-    <- ( Variable / ScalarType )
+    <- ( Variable / Type )
 
 CommandSecondArg
     <- Object

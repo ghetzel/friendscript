@@ -117,6 +117,11 @@ func TestAssignments(t *testing.T) {
 		},
 		`put_1`: `test 1`,
 		`put_2`: `test {a}`,
+		`put_3`: []interface{}{
+			float64(1),
+			float64(2),
+			float64(3),
+		},
 	}
 
 	script := `# set variables of with values of every type
@@ -163,7 +168,8 @@ func TestAssignments(t *testing.T) {
     $ee8.always['finishing'].each_others = 'sandwiches'
     $ee8.always['finishing'].other['stuff'].too = true
     put "test {a}" -> $put_1
-    put 'test {a}' -> $put_2`
+    put 'test {a}' -> $put_2
+	$put_3 = [1,2,3]`
 
 	actual, err := eval(script)
 
