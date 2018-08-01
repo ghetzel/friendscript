@@ -32,9 +32,13 @@ func CallCommandFunction(from interface{}, name string, first interface{}, rest 
 		arguments := make([]reflect.Value, fn.Type().NumIn())
 
 		for i := 0; i < len(arguments); i++ {
-			if i < len(inputs) {
-				argT := fn.Type().In(i)
+			argT := fn.Type().In(i)
 
+			// first and foremost, initialize the argument to its zero value
+			arguments[i] = reflect.Zero(argT)
+
+			// if we received a valid input for this argument, populate it
+			if i < len(inputs) {
 				if inV := reflect.ValueOf(inputs[i]); inV.IsValid() {
 					if inV.Type().AssignableTo(argT) {
 						// attempt direct assignment

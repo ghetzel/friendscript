@@ -477,7 +477,11 @@ func TestLoops(t *testing.T) {
 func TestCommands(t *testing.T) {
 	assert := require.New(t)
 
-	actual, err := eval(`fmt::trim "test" {
+	actual, err := eval(`fmt::trim -> $result`)
+	assert.NoError(err)
+	assert.Zero(actual[`result`])
+
+	actual, err = eval(`fmt::trim "test" {
 		prefix: 't',
 		suffix: 't',
 	} -> $rv`)
@@ -487,7 +491,7 @@ func TestCommands(t *testing.T) {
 
 	actual, err = eval(`fmt::trim "test" -> $rv`)
 	assert.NoError(err)
-	assert.Equal(`es`, actual[`rv`])
+	assert.Equal(`test`, actual[`rv`])
 }
 
 func jsondiff(expected interface{}, actual interface{}) string {
