@@ -3,15 +3,39 @@ package friendscript
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/ghetzel/friendscript/utils"
 	"github.com/stretchr/testify/require"
 	"github.com/yudai/gojsondiff"
 	"github.com/yudai/gojsondiff/formatter"
 )
 
+type testCommands struct {
+	utils.Module
+	scopeable utils.Scopeable
+}
+
+func newTestCommands(scopeable utils.Scopeable) *testCommands {
+	cmd := &testCommands{
+		scopeable: scopeable,
+	}
+
+	cmd.Module = utils.NewDefaultExecutor(cmd)
+	return cmd
+}
+
+func (self *testCommands) MapArg(key string, m map[string]interface{}) error {
+	self.scopeable.Scope().Set(strings.TrimSpace(key), m)
+	return nil
+}
+
 func eval(script string) (map[string]interface{}, error) {
-	scope, err := NewEnvironment().EvaluateString(script)
+	env := NewEnvironment()
+	env.RegisterModule(`testing`, newTestCommands(env))
+
+	scope, err := env.EvaluateString(script)
 
 	if err == nil {
 		return scope.Data(), nil
@@ -122,6 +146,12 @@ func TestAssignments(t *testing.T) {
 			float64(2),
 			float64(3),
 		},
+		`put_4`: "\t\tput test four\n\t\tput test\n\t\tput",
+		`t_maparg`: map[string]interface{}{
+			`one`:   `first`,
+			`two`:   `second`,
+			`three`: `third`,
+		},
 	}
 
 	script := `# set variables of with values of every type
@@ -169,7 +199,17 @@ func TestAssignments(t *testing.T) {
     $ee8.always['finishing'].other['stuff'].too = true
     put "test {a}" -> $put_1
     put 'test {a}' -> $put_2
-	put [1, 2, 3] -> $put_3`
+	put [1, 2, 3] -> $put_3
+	put begin
+		put test four
+		put test
+		put
+	end -> $put_4
+	testing::map_arg 't_maparg' {
+		one:   'first',
+		two:   'second',
+		three: 'third',
+	}`
 
 	actual, err := eval(script)
 
