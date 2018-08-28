@@ -81,7 +81,7 @@ func (self *Commands) Set(key string, args *SetArgs) (interface{}, error) {
 
 	defaults.SetDefaults(args)
 
-	if args.Interpolate {
+	if args.Interpolate && typeutil.IsKindOfString(args.Value) {
 		if v, err := self.Interpolate(typeutil.V(args.Value).String(), nil); err == nil {
 			args.Value = v
 		} else {
