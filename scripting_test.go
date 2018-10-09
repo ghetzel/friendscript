@@ -31,6 +31,10 @@ func (self *testCommands) MapArg(key string, m map[string]interface{}) error {
 	return nil
 }
 
+func (self *testCommands) Noop() error {
+	return nil
+}
+
 func eval(script string) (map[string]interface{}, error) {
 	env := NewEnvironment()
 	env.RegisterModule(`testing`, newTestCommands(env))
@@ -521,7 +525,14 @@ func TestLoops(t *testing.T) {
 func TestCommands(t *testing.T) {
 	assert := require.New(t)
 
-	actual, err := eval(`fmt::trim -> $result`)
+	_, err := eval(`testing::noop`)
+	assert.NoError(err)
+
+	actual, err := eval(`testing::noop -> $result`)
+	assert.NoError(err)
+	assert.Zero(actual[`result`])
+
+	actual, err = eval(`fmt::trim -> $result`)
 	assert.NoError(err)
 	assert.Zero(actual[`result`])
 

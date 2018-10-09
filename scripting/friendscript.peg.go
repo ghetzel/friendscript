@@ -2289,7 +2289,7 @@ func (p *Friendscript) Init() {
 		nil,
 		/* 81 DirectiveDeclare <- <(DECLARE VariableSequence)> */
 		nil,
-		/* 82 Command <- <(_ CommandName __ ((CommandFirstArg __ CommandSecondArg) / CommandFirstArg / CommandSecondArg)? (_ CommandResultAssignment)?)> */
+		/* 82 Command <- <(_ CommandName (__ ((CommandFirstArg __ CommandSecondArg) / CommandFirstArg / CommandSecondArg))? (_ CommandResultAssignment)?)> */
 		func() bool {
 			position261, tokenIndex261 := position, tokenIndex
 			{
@@ -2326,11 +2326,11 @@ func (p *Friendscript) Init() {
 					}
 					add(ruleCommandName, position263)
 				}
-				if !_rules[rule__]() {
-					goto l261
-				}
 				{
 					position267, tokenIndex267 := position, tokenIndex
+					if !_rules[rule__]() {
+						goto l267
+					}
 					{
 						position269, tokenIndex269 := position, tokenIndex
 						if !_rules[ruleCommandFirstArg]() {

@@ -16,6 +16,7 @@ require (
 	github.com/mattn/go-tty v0.0.0-20180219170247-931426f7535a
 	github.com/mcuadros/go-defaults v0.0.0-20161116231230-e1c978be3307
 	github.com/mitchellh/mapstructure v1.0.0
+	github.com/onsi/gomega v1.4.2 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/term v0.0.0-20180423043932-cda20d4ac917
 	github.com/pmezard/go-difflib v1.0.0
@@ -26,6 +27,7 @@ require (
 	github.com/stretchr/testify v1.2.2
 	github.com/yudai/gojsondiff v0.0.0-20170107030110-7b1b7adf999d
 	github.com/yudai/golcs v0.0.0-20150405163532-d1c525dea8ce
-	golang.org/x/sys v0.0.0-20180524135853-04b83988a018
+	github.com/yudai/pp v2.0.1+incompatible // indirect
+	golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e
 	gopkg.in/neurosnap/sentences.v1 v1.0.6
 )
