@@ -45,15 +45,17 @@ type Environment struct {
 	replHandlers    map[string]InteractiveHandlerFunc
 	contextHandlers []ContextHandlerFunc
 	chlock          sync.Mutex
+	filterCommands  map[string]bool
 }
 
 // Create a new scripting environment.
 func NewEnvironment() *Environment {
 	environment := &Environment{
-		Name:         DefaultEnvironmentName,
-		stack:        make([]*scripting.Scope, 0),
-		modules:      make(map[string]Module),
-		replHandlers: make(map[string]InteractiveHandlerFunc),
+		Name:           DefaultEnvironmentName,
+		stack:          make([]*scripting.Scope, 0),
+		modules:        make(map[string]Module),
+		replHandlers:   make(map[string]InteractiveHandlerFunc),
+		filterCommands: make(map[string]bool),
 	}
 
 	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment))
@@ -82,6 +84,24 @@ func (self *Environment) RegisterModule(prefix string, module Module) {
 // Removes a registered module at the given prefix.
 func (self *Environment) UnregisterModule(prefix string) {
 	delete(self.modules, prefix)
+}
+
+// Specify a command that should not be permitted to execute.
+func (self *Environment) DisableCommand(module string, cmdname string) {
+	if module == `` {
+		module = scripting.UnqualifiedModuleName
+	}
+
+	self.filterCommands[module+`::`+cmdname] = true
+}
+
+// Specify a command that should be permitted to execute.
+func (self *Environment) EnableCommand(module string, cmdname string) {
+	if module == `` {
+		module = scripting.UnqualifiedModuleName
+	}
+
+	delete(self.filterCommands, module+`::`+cmdname)
 }
 
 // Retrieve a copy of the currently registered modules.
@@ -439,6 +459,12 @@ func (self *Environment) evaluateDirective(directive *scripting.Directive) error
 
 func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclare bool) (string, error) {
 	modname, name := command.Name()
+
+	// prevent the execution of disabled commands
+	if reject, _ := self.filterCommands[modname+`::`+name]; reject {
+		return ``, fmt.Errorf("Execution of the %s::%s command has been disabled", modname, name)
+	}
+
 	log.Debugf("EXEC %v::%v", modname, name)
 	ctx := command.SourceContext()
 	self.sendContextUpdate(ctx, false)
