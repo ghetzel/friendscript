@@ -110,11 +110,7 @@ func (self *Environment) Commands() []string {
 	commands := make([]string, 0)
 
 	for name, module := range self.Modules() {
-		fmt.Printf("TEST: %v=%T\n", name, module)
-
 		for _, cmdname := range utils.ListModuleCommands(module) {
-			fmt.Printf("TEST: %v\n", cmdname)
-
 			fullname := name + `::` + cmdname
 
 			if _, ok := self.filterCommands[fullname]; !ok {
