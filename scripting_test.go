@@ -48,6 +48,20 @@ func eval(script string) (map[string]interface{}, error) {
 	}
 }
 
+func TestListCommands(t *testing.T) {
+	assert := require.New(t)
+	env := NewEnvironment()
+	env.RegisterModule(`testing`, newTestCommands(env))
+	commands := env.Commands()
+
+	assert.Contains(commands, `core::log`)
+	assert.Contains(commands, `file::open`)
+	assert.Contains(commands, `fmt::trim`)
+	assert.Contains(commands, `testing::map_arg`)
+	assert.Contains(commands, `testing::noop`)
+	assert.Contains(commands, `vars::get`)
+}
+
 func TestAssignments(t *testing.T) {
 	assert := require.New(t)
 

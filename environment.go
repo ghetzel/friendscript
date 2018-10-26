@@ -2,6 +2,7 @@ package friendscript
 
 import (
 	"fmt"
+	"github.com/ghetzel/friendscript/utils"
 	"io"
 	"io/ioutil"
 	"os"
@@ -102,6 +103,28 @@ func (self *Environment) EnableCommand(module string, cmdname string) {
 	}
 
 	delete(self.filterCommands, module+`::`+cmdname)
+}
+
+// List all commands supported by all registered modules.
+func (self *Environment) Commands() []string {
+	commands := make([]string, 0)
+
+	for name, module := range self.Modules() {
+		fmt.Printf("TEST: %v=%T\n", name, module)
+
+		for _, cmdname := range utils.ListModuleCommands(module) {
+			fmt.Printf("TEST: %v\n", cmdname)
+
+			fullname := name + `::` + cmdname
+
+			if _, ok := self.filterCommands[fullname]; !ok {
+				commands = append(commands, fullname)
+			}
+		}
+	}
+
+	sort.Strings(commands)
+	return commands
 }
 
 // Retrieve a copy of the currently registered modules.

@@ -4,11 +4,39 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/ghetzel/go-stockutil/stringutil"
+
 	"github.com/ghetzel/go-stockutil/maputil"
+	"github.com/ghetzel/go-stockutil/sliceutil"
 	"github.com/ghetzel/go-stockutil/typeutil"
 )
 
 var errorInterface = reflect.TypeOf((*error)(nil)).Elem()
+
+func ListModuleCommands(module Module, skipNames ...string) []string {
+	commands := make([]string, 0)
+
+	modV := reflect.ValueOf(module)
+
+	if modV.IsValid() {
+		modT := modV.Type()
+
+		for i := 0; i < modT.NumMethod(); i++ {
+			switch name := modT.Method(i).Name; name {
+			case `ExecuteCommand`, `FormatCommandName`, `SetInstance`:
+				continue
+			default:
+				if sliceutil.ContainsString(skipNames, name) {
+					continue
+				} else {
+					commands = append(commands, stringutil.Underscore(name))
+				}
+			}
+		}
+	}
+
+	return commands
+}
 
 func GetFunctionByName(from interface{}, name string) (reflect.Value, error) {
 	var fromV reflect.Value
