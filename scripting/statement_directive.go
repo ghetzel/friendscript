@@ -9,7 +9,16 @@ type Directive struct {
 }
 
 type emptyValue int
+
+func (self emptyValue) Resolve() interface{} {
+	return nil
+}
+
 type DirectiveType int
+
+type Resolvable interface {
+	Resolve() interface{}
+}
 
 const (
 	UnknownDirective DirectiveType = iota

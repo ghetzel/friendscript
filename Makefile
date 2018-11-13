@@ -15,6 +15,7 @@ fmt:
 deps:
 	@go list github.com/pointlander/peg || go get github.com/pointlander/peg
 	go get ./...
+	-go mod tidy
 	go vet ./...
 
 test: fmt deps

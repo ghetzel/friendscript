@@ -300,7 +300,7 @@ func mapifyStruct(in interface{}) interface{} {
 
 		return elems
 	} else if typeutil.IsStruct(in) {
-		return maputil.DeepCopy(in)
+		return maputil.DeepCopyStruct(in)
 	} else {
 		return in
 	}

@@ -63,16 +63,14 @@ func (self *Scope) Data() map[string]interface{} {
 	output := make(map[string]interface{})
 
 	maputil.Walk(self.data, func(value interface{}, path []string, isLeaf bool) error {
-		if typeutil.IsArray(value) {
+		if resolvable, ok := value.(Resolvable); ok {
+			fmt.Printf("RESOLV[%+v] %+v -> %v\n", output, path, resolvable.Resolve())
+			maputil.DeepSet(output, path, resolvable.Resolve())
+		} else if typeutil.IsArray(value) {
 			maputil.DeepSet(output, path, value)
 			return maputil.SkipDescendants
-
 		} else if isLeaf {
-			if _, ok := value.(emptyValue); ok {
-				maputil.DeepSet(output, path, nil)
-			} else {
-				maputil.DeepSet(output, path, value)
-			}
+			maputil.DeepSet(output, path, value)
 		}
 
 		return nil
@@ -162,7 +160,7 @@ func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope
 	if v := maputil.DeepGet(self.data, strings.Split(key, `.`)); v != nil {
 		// return *copies* of compound types
 		if typeutil.IsMap(v) {
-			v = maputil.DeepCopy(v)
+			v = maputil.DeepCopyStruct(v)
 		} else if typeutil.IsArray(v) {
 			v = sliceutil.Sliceify(v)
 		}
