@@ -172,6 +172,9 @@ func TestAssignments(t *testing.T) {
 		},
 		`ulit1`: `\u2211`,
 		`ulit2`: "\u2211",
+		`vars_set_1`: []interface{}{
+			`set1`,
+		},
 	}
 
 	script := `# set variables of with values of every type
@@ -231,7 +234,11 @@ func TestAssignments(t *testing.T) {
 		three: 'third',
 	}
 	$ulit1 = '\u2211'
-	$ulit2 = "\u2211"`
+	$ulit2 = "\u2211"
+
+	vars::set 'vars_set_1' {
+		value: ['set1'],
+	}`
 
 	actual, err := eval(script)
 

@@ -84,7 +84,11 @@ func CallCommandFunction(from interface{}, name string, first interface{}, rest 
 					}
 
 					// instantiate new arg type
-					arguments[i] = reflect.New(argT)
+					if typeutil.IsScalar(argT) {
+						arguments[i] = reflect.Zero(argT)
+					} else {
+						arguments[i] = reflect.New(argT)
+					}
 
 					// map arguments are used to populate newly instantiated structs
 					if typeutil.IsMap(inputs[i]) {
