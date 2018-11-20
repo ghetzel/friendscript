@@ -316,7 +316,7 @@ func (self *Statement) parseValue(node *node32) (interface{}, error) {
 	}
 }
 
-func (self *Statement) resolveVariableKey(node *node32) (string, error) {
+func (self *Statement) resolveVariableKey(node *node32) ([]string, error) {
 	if node.rule() == ruleVariable {
 		child := node.firstChild()
 		keyparts := make([]string, 0)
@@ -328,6 +328,11 @@ func (self *Statement) resolveVariableKey(node *node32) (string, error) {
 			for _, varpart := range nameNodes {
 				identNode := varpart.firstChild(ruleIdentifier)
 				ident := self.raw(identNode)
+
+				if ident == `` {
+					return nil, fmt.Errorf("cannot use empty value as index")
+				}
+
 				keyparts = append(keyparts, ident)
 
 				if index := identNode.firstChild(ruleVariableIndex); index != nil {
@@ -335,33 +340,33 @@ func (self *Statement) resolveVariableKey(node *node32) (string, error) {
 						if indexValue, err := NewExpression(self, indexNode).Value(); err == nil {
 							keyparts = append(keyparts, fmt.Sprintf("%v", indexValue))
 						} else {
-							return ``, err
+							return nil, err
 						}
 					} else {
-						return ``, fmt.Errorf("expected expression for index key")
+						return nil, fmt.Errorf("expected expression for index key")
 					}
 				}
 			}
 
-			return strings.Join(keyparts, `.`), nil
+			return keyparts, nil
 
 		case ruleSKIPVAR:
-			return ``, nil
+			return nil, nil
 
 		default:
-			return ``, fmt.Errorf("invalid variable usage '%v'", self.raw(node))
+			return nil, fmt.Errorf("invalid variable usage '%v'", self.raw(node))
 		}
 	} else {
-		return ``, fmt.Errorf("expected variable, got %v", node)
+		return nil, fmt.Errorf("expected variable, got %v", node)
 	}
 }
 
 func (self *Statement) resolveVariable(node *node32) (interface{}, error) {
-	if key, err := self.resolveVariableKey(node); err == nil {
-		if key == `` {
+	if keyparts, err := self.resolveVariableKey(node); err == nil {
+		if len(keyparts) == 0 {
 			return nil, nil
 		} else {
-			return self.Script().Scope().Get(key), nil
+			return self.Script().Scope().Get(keyparts), nil
 		}
 	} else {
 		return nil, fmt.Errorf("expected variable, got %v", node)
@@ -375,7 +380,7 @@ func (self *Statement) makeAssignment(node *node32) *Assignment {
 
 	if lhs != nil && rhs != nil {
 		if aop, err := parseAssignmentOperator(op); err == nil {
-			names := make([]string, 0)
+			names := make([][]string, 0)
 			expressions := make([]*Expression, 0)
 
 			for _, varNode := range lhs.first().children(ruleVariable) {

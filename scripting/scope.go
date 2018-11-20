@@ -79,25 +79,24 @@ func (self *Scope) Data() map[string]interface{} {
 	return output
 }
 
-func (self *Scope) Declare(key string) {
-	if key == `` || key == placeholderVarName {
+func (self *Scope) Declare(key interface{}) {
+	if typeutil.IsEmpty(key) || key == placeholderVarName {
 		return
 	}
 
 	var e emptyValue
-	key = self.prepVariableName(key)
 
-	// log.Infof("DECL scope(%d)[%v]", self.Level(), key)
-	maputil.DeepSet(self.data, strings.Split(key, `.`), e)
+	log.Infof("DECL scope(%d)%v", self.Level(), key)
+	maputil.DeepSet(self.data, self.prepVariableName(key), e)
 }
 
-func (self *Scope) Set(key string, value interface{}) {
-	key = self.prepVariableName(key)
-	scope := self.OwnerOf(key)
-	scope.set(key, value)
+func (self *Scope) Set(key interface{}, value interface{}) {
+	parts := self.prepVariableName(key)
+	scope := self.OwnerOf(parts)
+	scope.set(parts, value)
 }
 
-func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
+func (self *Scope) Get(key interface{}, fallback ...interface{}) interface{} {
 	value, _ := self.get(key, fallback...)
 
 	// the emptyValue type is used by the "declare" statement to put a non-nil placeholder
@@ -117,7 +116,7 @@ func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
 // If none of the ancestor scopes have a non-nil value at the given key, the current
 // scope becomes the owner of the key and will be returned.
 //
-func (self *Scope) OwnerOf(key string) *Scope {
+func (self *Scope) OwnerOf(key interface{}) *Scope {
 	if self.isolated || self.IsLocal(key) {
 		return self
 	} else {
@@ -126,16 +125,18 @@ func (self *Scope) OwnerOf(key string) *Scope {
 	}
 }
 
-func (self *Scope) IsLocal(key string) bool {
-	if _, ok := maputil.DeepGet(self.data, strings.Split(key, `.`), tracer(0)).(tracer); ok {
+func (self *Scope) IsLocal(key interface{}) bool {
+	parts := self.prepVariableName(key)
+
+	if _, ok := maputil.DeepGet(self.data, parts, tracer(0)).(tracer); ok {
 		return false
 	}
 
 	return true
 }
 
-func (self *Scope) set(key string, value interface{}) {
-	if key == `` || key == placeholderVarName {
+func (self *Scope) set(key interface{}, value interface{}) {
+	if typeutil.IsEmpty(key) || key == placeholderVarName {
 		return
 	}
 
@@ -147,17 +148,18 @@ func (self *Scope) set(key string, value interface{}) {
 		log.Panicf("Cannot set %v: %v", key, err)
 	}
 
+	parts := self.prepVariableName(key)
 	value = intIfYouCan(value)
 	value = mapifyStruct(value)
 
-	// log.Infof("SSET scope(%d)[%v] = %T(%v)", self.Level(), key, value, value)
-	maputil.DeepSet(self.data, strings.Split(key, `.`), value)
+	log.Infof("SSET scope(%d)%v = %T(%v)", self.Level(), key, value, value)
+	maputil.DeepSet(self.data, parts, value)
 }
 
-func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope) {
-	key = self.prepVariableName(key)
+func (self *Scope) get(key interface{}, fallback ...interface{}) (interface{}, *Scope) {
+	parts := self.prepVariableName(key)
 
-	if v := maputil.DeepGet(self.data, strings.Split(key, `.`)); v != nil {
+	if v := maputil.DeepGet(self.data, parts); v != nil {
 		// return *copies* of compound types
 		if typeutil.IsMap(v) {
 			v = maputil.DeepCopyStruct(v)
@@ -200,8 +202,18 @@ func (self *Scope) Interpolate(in string) string {
 	return in
 }
 
-func (self *Scope) prepVariableName(key string) string {
-	key = strings.TrimPrefix(key, `$`)
+func (self *Scope) prepVariableName(key interface{}) []string {
+	if typeutil.IsArray(key) {
+		parts := sliceutil.Stringify(key)
 
-	return key
+		if len(parts) > 0 {
+			parts[0] = strings.TrimPrefix(parts[0], `$`)
+		}
+
+		return parts
+	} else {
+		return sliceutil.CompactString(
+			strings.Split(typeutil.String(key), `.`),
+		)
+	}
 }

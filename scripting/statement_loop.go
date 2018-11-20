@@ -194,14 +194,15 @@ func (self *Loop) Blocks() []*Block {
 	return blocks
 }
 
-func (self *Loop) IteratableParts() ([]string, interface{}) {
+func (self *Loop) IteratableParts() ([][]string, interface{}) {
 	if self.Type() == IteratorLoop {
 		if node := self.statement.node.firstChild(ruleLoopConditionIterable); node != nil {
 			lhs := node.first(ruleLoopIterableLHS)
 			rhs := node.first(ruleLoopIterableRHS)
 
 			if lhs != nil && rhs != nil {
-				names := make([]string, 0)
+				names := make([][]string, 0)
+
 				var rightHand interface{}
 
 				for _, varNode := range lhs.first().children(ruleVariable) {

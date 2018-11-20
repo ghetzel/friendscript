@@ -3,7 +3,7 @@ package scripting
 import "fmt"
 
 type Assignment struct {
-	LeftHandSide  []string
+	LeftHandSide  [][]string
 	Operator      AssignmentOperator
 	RightHandSide []*Expression
 	statement     *Statement

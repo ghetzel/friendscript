@@ -617,7 +617,7 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 func (self *Environment) evaluateLoop(loop *scripting.Loop) error {
 	var i int
 	var sourceVar string
-	var destVars []string
+	var destVars [][]string
 	var loopScope = scripting.NewScope(self.Scope())
 
 	loopScope.Declare(`index`)
@@ -714,7 +714,7 @@ LoopEval:
 	return nil
 }
 
-func (self *Environment) evaluateLoopIterationStart(loop *scripting.Loop, scope *scripting.Scope) (string, []string, error) {
+func (self *Environment) evaluateLoopIterationStart(loop *scripting.Loop, scope *scripting.Scope) (string, [][]string, error) {
 	destVars, source := loop.IteratableParts()
 	var sourceVar string
 
