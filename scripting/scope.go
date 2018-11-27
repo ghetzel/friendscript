@@ -64,7 +64,6 @@ func (self *Scope) Data() map[string]interface{} {
 
 	maputil.Walk(self.data, func(value interface{}, path []string, isLeaf bool) error {
 		if resolvable, ok := value.(Resolvable); ok {
-			fmt.Printf("RESOLV[%+v] %+v -> %v\n", output, path, resolvable.Resolve())
 			maputil.DeepSet(output, path, resolvable.Resolve())
 		} else if typeutil.IsArray(value) {
 			maputil.DeepSet(output, path, value)

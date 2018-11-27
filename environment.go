@@ -16,6 +16,7 @@ import (
 	"github.com/ghetzel/friendscript/commands/core"
 	cmdfile "github.com/ghetzel/friendscript/commands/file"
 	cmdfmt "github.com/ghetzel/friendscript/commands/fmt"
+	cmdhttp "github.com/ghetzel/friendscript/commands/http"
 	cmdutils "github.com/ghetzel/friendscript/commands/utils"
 	cmdvars "github.com/ghetzel/friendscript/commands/vars"
 	"github.com/ghetzel/friendscript/scripting"
@@ -64,6 +65,7 @@ func NewEnvironment() *Environment {
 	environment.RegisterModule(`file`, cmdfile.New(environment))
 	environment.RegisterModule(`utils`, cmdutils.New(environment))
 	environment.RegisterModule(`vars`, cmdvars.New(environment))
+	environment.RegisterModule(`http`, cmdhttp.New(environment))
 
 	return environment
 }
