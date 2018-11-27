@@ -3,10 +3,15 @@ package friendscript
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/ghetzel/friendscript/utils"
+	"github.com/ghetzel/go-stockutil/httputil"
+	"github.com/ghetzel/go-stockutil/maputil"
+	"github.com/ghetzel/go-stockutil/typeutil"
 	"github.com/stretchr/testify/require"
 	"github.com/yudai/gojsondiff"
 	"github.com/yudai/gojsondiff/formatter"
@@ -35,9 +40,13 @@ func (self *testCommands) Noop() error {
 	return nil
 }
 
-func eval(script string) (map[string]interface{}, error) {
+func eval(script string, items ...interface{}) (map[string]interface{}, error) {
 	env := NewEnvironment()
 	env.RegisterModule(`testing`, newTestCommands(env))
+
+	if len(items) > 0 {
+		script = fmt.Sprintf(script, items...)
+	}
 
 	scope, err := env.EvaluateString(script)
 
@@ -568,6 +577,70 @@ func TestCommands(t *testing.T) {
 	actual, err = eval(`fmt::trim "test" -> $rv`)
 	assert.NoError(err)
 	assert.Equal(`test`, actual[`rv`])
+}
+
+func TestHttp(t *testing.T) {
+	assert := require.New(t)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc(`/json/objects`, func(w http.ResponseWriter, req *http.Request) {
+		var into map[string]interface{}
+
+		switch req.Method {
+		case `GET`:
+			req.Body.Close()
+			t.Logf("Test HTTP %s: <no body>", req.Method)
+
+			httputil.RespondJSON(w, map[string]interface{}{
+				`get`: `got it, good`,
+			})
+		case `DELETE`:
+			httputil.RespondJSON(w, nil)
+
+		case `HEAD`:
+			httputil.RespondJSON(w, nil, http.StatusOK)
+
+		default:
+			if err := httputil.ParseRequest(req, &into); err == nil {
+				t.Logf("Test HTTP %s: %s", req.Method, typeutil.Dump(into))
+				httputil.RespondJSON(w, into, http.StatusAccepted)
+			} else {
+				httputil.RespondJSON(w, err)
+			}
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	actual, err := eval("http::get %q -> $get_json_object", server.URL+`/json/objects`)
+	assert.NoError(err)
+	assert.EqualValues(http.StatusOK, maputil.DeepGet(actual[`get_json_object`], []string{`status`}))
+	assert.EqualValues(`got it, good`, maputil.DeepGet(actual[`get_json_object`], []string{`body`, `get`}))
+
+	actual, err = eval("http::delete %q -> $delete_json_object", server.URL+`/json/objects`)
+	assert.NoError(err)
+	assert.EqualValues(http.StatusNoContent, maputil.DeepGet(actual[`delete_json_object`], []string{`status`}))
+
+	actual, err = eval("http::head %q -> $head_json_object", server.URL+`/json/objects`)
+	assert.NoError(err)
+	assert.EqualValues(http.StatusOK, maputil.DeepGet(actual[`head_json_object`], []string{`status`}))
+
+	actual, err = eval(`http::post %q {
+		type: 'json',
+		body: {
+			test: 1.23,
+			data: true,
+			value: 'yes',
+		},
+	} -> $post_json_object`, server.URL+`/json/objects`)
+
+	t.Log(typeutil.Dump(actual[`post_json_object`]))
+	assert.NoError(err)
+	assert.EqualValues(http.StatusAccepted, maputil.DeepGet(actual[`post_json_object`], []string{`status`}))
+	assert.EqualValues(1.23, maputil.DeepGet(actual[`post_json_object`], []string{`body`, `test`}))
+	assert.EqualValues(true, maputil.DeepGet(actual[`post_json_object`], []string{`body`, `data`}))
+	assert.EqualValues(`yes`, maputil.DeepGet(actual[`post_json_object`], []string{`body`, `value`}))
 }
 
 func jsondiff(expected interface{}, actual interface{}) string {
