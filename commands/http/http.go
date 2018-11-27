@@ -3,6 +3,7 @@ package http
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,12 +27,26 @@ type Commands struct {
 }
 
 type RequestArgs struct {
-	Headers      map[string]interface{} `json:"headers"`
-	Params       map[string]interface{} `json:"params"`
-	Timeout      time.Duration          `json:"timeout" default:"30s"`
-	Body         interface{}            `json:"body"`
-	RequestType  string                 `json:"type"`
-	ResponseType string                 `json:"response_type"`
+	// The headers to send with the request.
+	Headers map[string]interface{} `json:"headers"`
+
+	// Query string parameters to add to the request.
+	Params map[string]interface{} `json:"params"`
+
+	// The amount of time to wait for the request to complete.
+	Timeout time.Duration `json:"timeout" default:"30s"`
+
+	// The body of the request. This is processed according to what is specified in RequestType.
+	Body interface{} `json:"body"`
+
+	// The type of data in Body, specifying how it should be encoded.  Valid values are "raw", "form", and "json"
+	RequestType string `json:"type" default:"raw"`
+
+	// Specify how the response body should be decoded.  Can be "raw", or a MIME type that overrides the Content-Type response header.
+	ResponseType string `json:"response_type"`
+
+	// Whether to disable TLS peer verification.
+	DisableVerifySSL bool `json:"disable_verify_ssl"`
 }
 
 func (self *RequestArgs) Merge(other *RequestArgs) RequestArgs {
@@ -49,6 +64,10 @@ func (self *RequestArgs) Merge(other *RequestArgs) RequestArgs {
 			out.ResponseType = v
 		}
 
+		if other.DisableVerifySSL {
+			out.DisableVerifySSL = true
+		}
+
 		if v := other.Timeout; v > 0 {
 			out.Timeout = v
 		}
@@ -62,12 +81,23 @@ func (self *RequestArgs) Merge(other *RequestArgs) RequestArgs {
 }
 
 type HttpResponse struct {
-	Status      int                    `json:"status"`
-	Took        time.Duration          `json:"took"`
-	Headers     map[string]interface{} `json:"headers"`
-	ContentType string                 `json:"type"`
-	Length      int64                  `json:"length"`
-	Body        interface{}            `json:"body"`
+	// The numeric HTTP status code of the response.
+	Status int `json:"status"`
+
+	// The time (in millisecond) that the request took to complete.
+	Took int64 `json:"took"`
+
+	// Response headers sent back from the server.
+	Headers map[string]interface{} `json:"headers"`
+
+	// The MIME type of the response body (if any).
+	ContentType string `json:"type"`
+
+	// The length of the response body in bytes.
+	Length int64 `json:"length"`
+
+	// The decoded response body (if any).
+	Body interface{} `json:"body"`
 }
 
 func New(scopeable utils.Scopeable) *Commands {
@@ -94,26 +124,32 @@ func (self *Commands) Defaults(args *RequestArgs) error {
 	return nil
 }
 
+// Perform an HTTP GET request.
 func (self *Commands) Get(url string, args *RequestArgs) (*HttpResponse, error) {
 	return self.request(`GET`, url, args)
 }
 
+// Perform an HTTP POST request.
 func (self *Commands) Post(url string, args *RequestArgs) (*HttpResponse, error) {
 	return self.request(`POST`, url, args)
 }
 
+// Perform an HTTP PUT request.
 func (self *Commands) Put(url string, args *RequestArgs) (*HttpResponse, error) {
 	return self.request(`PUT`, url, args)
 }
 
+// Perform an HTTP DELETE request.
 func (self *Commands) Delete(url string, args *RequestArgs) (*HttpResponse, error) {
 	return self.request(`DELETE`, url, args)
 }
 
+// Perform an HTTP OPTIONS request.
 func (self *Commands) Options(url string, args *RequestArgs) (*HttpResponse, error) {
 	return self.request(`OPTIONS`, url, args)
 }
 
+// Perform an HTTP HEAD request.
 func (self *Commands) Head(url string, args *RequestArgs) (*HttpResponse, error) {
 	return self.request(`HEAD`, url, args)
 }
@@ -123,10 +159,24 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 	client := &http.Client{
 		Timeout: reqargs.Timeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: reqargs.DisableVerifySSL,
+			},
+		},
 	}
 
+	// encode the body (if any) in preparation for sending in the request
 	if body, contentType, err := encodeBody(reqargs.RequestType, reqargs.Body); err == nil {
+		// get a new request
 		if req, err := http.NewRequest(method, url, body); err == nil {
+			// set query string parameters
+			if len(reqargs.Params) > 0 {
+				for k, v := range reqargs.Params {
+					httputil.SetQ(req.URL, k, v)
+				}
+			}
+
 			// set the body
 			if body != nil {
 				req.Body = ioutil.NopCloser(body)
@@ -157,7 +207,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 				res := &HttpResponse{
 					Status:  response.StatusCode,
 					Headers: make(map[string]interface{}),
-					Took:    time.Since(start),
+					Took:    int64(time.Since(start).Nanoseconds() / 1e6),
 				}
 
 				// add (autotyped) headers
@@ -170,40 +220,42 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 				}
 
 				// decode (i.e.: decompress) response
-				if response.Body != nil {
-					defer response.Body.Close()
-				}
+				if response.ContentLength > 0 {
+					if response.Body != nil {
+						defer response.Body.Close()
+					}
 
-				if decoded, err := httputil.DecodeResponse(response); err == nil {
-					// read and parse response body
-					if data, err := ioutil.ReadAll(decoded); err == nil {
-						res.Length = int64(len(data))
-						res.Body = data
+					if decoded, err := httputil.DecodeResponse(response); err == nil {
+						// read and parse response body
+						if data, err := ioutil.ReadAll(decoded); err == nil {
+							res.Length = int64(len(data))
+							res.Body = data
 
-						switch reqargs.ResponseType {
-						case `raw`:
-							break
-						default:
-							// automatically decode response
-							rt := response.Header.Get(`Content-Type`)
+							switch reqargs.ResponseType {
+							case `raw`:
+								break
+							default:
+								// automatically decode response
+								rt := response.Header.Get(`Content-Type`)
 
-							if reqargs.ResponseType != `` {
-								rt = reqargs.ResponseType
-							}
+								if reqargs.ResponseType != `` {
+									rt = reqargs.ResponseType
+								}
 
-							switch rt {
-							case `application/json`:
-								if err := json.Unmarshal(data, &res.Body); err != nil {
-									return nil, err
+								switch rt {
+								case `application/json`:
+									if err := json.Unmarshal(data, &res.Body); err != nil {
+										return nil, err
+									}
 								}
 							}
+						} else {
+							return nil, err
 						}
+
 					} else {
 						return nil, err
 					}
-
-				} else {
-					return nil, err
 				}
 
 				return res, nil

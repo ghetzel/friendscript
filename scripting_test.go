@@ -588,7 +588,6 @@ func TestHttp(t *testing.T) {
 
 		switch req.Method {
 		case `GET`:
-			req.Body.Close()
 			t.Logf("Test HTTP %s: <no body>", req.Method)
 
 			httputil.RespondJSON(w, map[string]interface{}{
