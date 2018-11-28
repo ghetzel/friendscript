@@ -54,7 +54,9 @@ type Environment struct {
 func NewEnvironment() *Environment {
 	environment := &Environment{
 		Name:           DefaultEnvironmentName,
-		stack:          make([]*scripting.Scope, 0),
+		stack:          []*scripting.Scope{
+			scripting.NewScope(nil),
+		},
 		modules:        make(map[string]Module),
 		replHandlers:   make(map[string]InteractiveHandlerFunc),
 		filterCommands: make(map[string]bool),

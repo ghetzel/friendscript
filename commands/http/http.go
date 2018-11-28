@@ -40,10 +40,10 @@ type RequestArgs struct {
 	Body interface{} `json:"body"`
 
 	// The type of data in Body, specifying how it should be encoded.  Valid values are "raw", "form", and "json"
-	RequestType string `json:"type" default:"raw"`
+	RequestType string `json:"type,omitempty" default:"raw"`
 
 	// Specify how the response body should be decoded.  Can be "raw", or a MIME type that overrides the Content-Type response header.
-	ResponseType string `json:"response_type"`
+	ResponseType string `json:"response_type,omitempty"`
 
 	// Whether to disable TLS peer verification.
 	DisableVerifySSL bool `json:"disable_verify_ssl"`
@@ -219,17 +219,17 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 					}
 				}
 
-				// decode (i.e.: decompress) response
-				if response.ContentLength > 0 {
-					if response.Body != nil {
-						defer response.Body.Close()
-					}
+				if response.Body != nil {
+					defer response.Body.Close()
+				}
 
+				// decode (i.e.: decompress) response
+				if response.ContentLength < 0 || response.ContentLength > 0 {
 					if decoded, err := httputil.DecodeResponse(response); err == nil {
 						// read and parse response body
 						if data, err := ioutil.ReadAll(decoded); err == nil {
 							res.Length = int64(len(data))
-							res.Body = data
+							res.Body = string(data)
 
 							switch reqargs.ResponseType {
 							case `raw`:
@@ -252,7 +252,6 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 						} else {
 							return nil, err
 						}
-
 					} else {
 						return nil, err
 					}
