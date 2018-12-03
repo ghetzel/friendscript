@@ -6,7 +6,7 @@ LOCALS      := $(shell find . -type f -name '*.go' -not -path "./vendor*/*")
 .EXPORT_ALL_VARIABLES:
 GO111MODULE  = on
 
-all: fmt deps test
+all: fmt deps test bin/friendscript
 
 fmt:
 	gofmt -w $(LOCALS)
@@ -20,3 +20,6 @@ deps:
 
 test: fmt deps
 	go test ./...
+
+bin/friendscript: *.go */*.go
+	go build -o bin/friendscript ./cmd/friendscript/...

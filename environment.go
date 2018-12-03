@@ -2,7 +2,6 @@ package friendscript
 
 import (
 	"fmt"
-	"github.com/ghetzel/friendscript/utils"
 	"io"
 	"io/ioutil"
 	"os"
@@ -16,10 +15,12 @@ import (
 	"github.com/ghetzel/friendscript/commands/core"
 	cmdfile "github.com/ghetzel/friendscript/commands/file"
 	cmdfmt "github.com/ghetzel/friendscript/commands/fmt"
+	cmdhtml "github.com/ghetzel/friendscript/commands/html"
 	cmdhttp "github.com/ghetzel/friendscript/commands/http"
 	cmdutils "github.com/ghetzel/friendscript/commands/utils"
 	cmdvars "github.com/ghetzel/friendscript/commands/vars"
 	"github.com/ghetzel/friendscript/scripting"
+	"github.com/ghetzel/friendscript/utils"
 	"github.com/ghetzel/go-stockutil/log"
 	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/ghetzel/go-stockutil/sliceutil"
@@ -53,8 +54,8 @@ type Environment struct {
 // Create a new scripting environment.
 func NewEnvironment() *Environment {
 	environment := &Environment{
-		Name:           DefaultEnvironmentName,
-		stack:          []*scripting.Scope{
+		Name: DefaultEnvironmentName,
+		stack: []*scripting.Scope{
 			scripting.NewScope(nil),
 		},
 		modules:        make(map[string]Module),
@@ -68,6 +69,7 @@ func NewEnvironment() *Environment {
 	environment.RegisterModule(`utils`, cmdutils.New(environment))
 	environment.RegisterModule(`vars`, cmdvars.New(environment))
 	environment.RegisterModule(`http`, cmdhttp.New(environment))
+	environment.RegisterModule(`html`, cmdhtml.New(environment))
 
 	return environment
 }
