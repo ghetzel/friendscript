@@ -1,4 +1,4 @@
-package friendscript
+package html
 
 import (
 	"bytes"
