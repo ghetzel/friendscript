@@ -102,7 +102,7 @@ func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
 	// the emptyValue type is used by the "declare" statement to put a non-nil placeholder
 	// value in a scope for the purpose of occupying they key.  When used as a value outside
 	// of this package, it should be nil.
-	if _, ok := value.(emptyValue); ok {
+	if isEmpty(value) {
 		return nil
 	}
 
@@ -138,7 +138,7 @@ func (self *Scope) set(key string, value interface{}) {
 		return
 	}
 
-	if value == nil {
+	if isEmpty(value) {
 		value = new(emptyValue)
 	} else if v, err := exprToValue(value); err == nil {
 		value = v
@@ -149,14 +149,23 @@ func (self *Scope) set(key string, value interface{}) {
 	value = intIfYouCan(value)
 	value = mapifyStruct(value)
 
-	// log.Infof("SSET scope(%d)[%v] = %T(%v)", self.Level(), key, value, value)
+	// fmt.Printf("SSET scope(%d)[%v] = %T(%v)\n", self.Level(), key, value, value)
+	//
+	// for _, st := range log.StackTrace(3) {
+	// 	if strings.Contains(st.String(), `friendscript`) {
+	// 		fmt.Printf("  " + st.String() + "\n")
+	// 	}
+	// }
+
 	maputil.DeepSet(self.data, strings.Split(key, `.`), value)
 }
 
 func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope) {
 	key = self.prepVariableName(key)
 
-	if v := maputil.DeepGet(self.data, strings.Split(key, `.`)); v != nil {
+	v := maputil.DeepGet(self.data, strings.Split(key, `.`))
+
+	if !isEmpty(v) {
 		// return *copies* of compound types
 		if typeutil.IsMap(v) {
 			v = maputil.DeepCopyStruct(v)
@@ -164,21 +173,21 @@ func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope
 			v = sliceutil.Sliceify(v)
 		}
 
-		// log.Debugf("SGET scope(%d)[%v] -> %T(%v)", self.Level(), key, v, v)
+		// fmt.Printf("SGET scope(%d)[%v] -> %T(%v)\n", self.Level(), key, v, v)
 		return v, self
 	} else if self.parent != nil {
-		// log.Debugf("SGET scope(%d)[%v] -> PARENT", self.Level(), key)
+		// fmt.Printf("SGET scope(%d)[%v] -> PARENT\n", self.Level(), key)
 
 		if v, scope := self.parent.get(key, fallback...); v != nil {
 			return v, scope
 		}
 	}
 
-	if len(fallback) > 0 {
-		// log.Debugf("SGET scope(%d)[%v] -> %T(%v) FALLBACK", self.Level(), key, fallback[0], fallback[0])
+	if len(fallback) > 0 && fallback[0] != nil {
+		// fmt.Printf("SGET scope(%d)[%v] -> %T(%v) FALLBACK\n", self.Level(), key, fallback[0], fallback[0])
 		return fallback[0], self
 	} else {
-		// log.Debugf("SGET scope(%d)[%v] -> nil FALLBACK", self.Level(), key)
+		// fmt.Printf("SGET scope(%d)[%v] -> nil FALLBACK\n", self.Level(), key)
 		return new(emptyValue), self
 	}
 }
@@ -188,7 +197,12 @@ func (self *Scope) Interpolate(in string) string {
 		if match := rxutil.Match(rxInterpolate, in); match != nil {
 			seq := match.Group(1)
 			seq = stringutil.Unwrap(seq, `{`, `}`)
+
 			value := self.Get(seq)
+
+			if isEmpty(value) {
+				value = ``
+			}
 
 			in = match.ReplaceGroup(1, fmt.Sprintf("%v", value))
 		} else {
@@ -203,4 +217,16 @@ func (self *Scope) prepVariableName(key string) string {
 	key = strings.TrimPrefix(key, `$`)
 
 	return key
+}
+
+func isEmpty(in interface{}) bool {
+	if in == nil {
+		return true
+	} else if _, ok := in.(*emptyValue); ok {
+		return true
+	} else if _, ok := in.(emptyValue); ok {
+		return true
+	}
+
+	return false
 }

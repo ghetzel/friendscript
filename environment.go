@@ -53,8 +53,8 @@ type Environment struct {
 // Create a new scripting environment.
 func NewEnvironment() *Environment {
 	environment := &Environment{
-		Name:           DefaultEnvironmentName,
-		stack:          []*scripting.Scope{
+		Name: DefaultEnvironmentName,
+		stack: []*scripting.Scope{
 			scripting.NewScope(nil),
 		},
 		modules:        make(map[string]Module),
@@ -412,15 +412,17 @@ func (self *Environment) evaluateStatement(statement *scripting.Statement) error
 }
 
 func (self *Environment) evaluateAssignment(assignment *scripting.Assignment, forceDeclare bool) error {
-	// log.Debugf("ASSN %v", assignment)
+	log.Debugf("ASSN %v", assignment)
 
+	// clear out all the left-hand side variables (if there isn't already one in this scope)
 	if assignment.Operator.ShouldPreclear() {
-		// clear out all the left-hand side variables
 		for _, lhs := range assignment.LeftHandSide {
-			if forceDeclare {
-				self.Scope().Declare(lhs)
-			} else {
-				self.Scope().Set(lhs, nil)
+			if !self.Scope().IsLocal(lhs) {
+				if forceDeclare {
+					self.Scope().Declare(lhs)
+				} else {
+					self.Scope().Set(lhs, nil)
+				}
 			}
 		}
 	}

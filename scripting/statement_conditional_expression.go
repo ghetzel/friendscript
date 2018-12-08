@@ -52,7 +52,7 @@ func isTruthy(value interface{}) bool {
 		return false
 	}
 
-	if typeutil.IsEmpty(value) || typeutil.IsZero(value) {
+	if typeutil.IsEmpty(value) || typeutil.IsZero(value) || isEmpty(value) {
 		return false
 	} else if stringutil.IsBooleanFalse(value) {
 		return false

@@ -69,7 +69,7 @@ func (self *Expression) resolveValue(node *node32) (interface{}, error) {
 }
 
 func exprToValue(in interface{}) (interface{}, error) {
-	if in == nil {
+	if isEmpty(in) {
 		return nil, nil
 	} else if expr, ok := in.(*Expression); ok && expr != nil {
 		if v, err := expr.Value(); err == nil {

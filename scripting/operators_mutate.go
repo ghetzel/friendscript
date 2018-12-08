@@ -131,7 +131,7 @@ func (self operator) evaluate(lhs interface{}, rhs interface{}) (interface{}, er
 		err = fmt.Errorf("operator '%v' not implemented", self)
 	}
 
-	if output == nil {
+	if isEmpty(output) {
 		output = new(emptyValue)
 	}
 

@@ -82,14 +82,18 @@ func (self Comparator) Evaluate(lhs *Expression, rhs *Expression) bool {
 
 	switch self {
 	case cmpEquality:
-		if res, err := stringutil.RelaxedEqual(lvv, rvv); err == nil {
+		if isEmpty(lvv) && isEmpty(rvv) {
+			return true
+		} else if res, err := stringutil.RelaxedEqual(lvv, rvv); err == nil {
 			return res
 		} else {
 			log.Panicf("incomparable types %T, %T: %v", lvv, rvv, err)
 			return false
 		}
 	case cmpNonEquality:
-		if res, err := stringutil.RelaxedEqual(lvv, rvv); err == nil {
+		if isEmpty(lvv) && !isEmpty(rvv) {
+			return true
+		} else if res, err := stringutil.RelaxedEqual(lvv, rvv); err == nil {
 			return !res
 		} else {
 			log.Panicf("incomparable types %T, %T: %v", lvv, rvv, err)

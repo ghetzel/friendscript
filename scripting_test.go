@@ -184,6 +184,8 @@ func TestAssignments(t *testing.T) {
 		`vars_set_1`: []interface{}{
 			`set1`,
 		},
+		`stringify_float`: `2.718281828459045`,
+		`stringify_int`:   `8675309`,
 	}
 
 	script := `# set variables of with values of every type
@@ -247,7 +249,12 @@ func TestAssignments(t *testing.T) {
 
 	vars::set 'vars_set_1' {
 		value: ['set1'],
-	}`
+	}
+
+	$stringify_float = 2.718281828459045
+	$stringify_float = "{stringify_float}"
+	$stringify_int = 8675309
+	$stringify_int = "{stringify_int}"`
 
 	actual, err := eval(script)
 

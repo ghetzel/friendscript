@@ -10,10 +10,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/ghetzel/friendscript/utils"
 	"github.com/ghetzel/go-stockutil/httputil"
+	"github.com/ghetzel/go-stockutil/log"
 	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/ghetzel/go-stockutil/sliceutil"
 	"github.com/ghetzel/go-stockutil/typeutil"
@@ -201,6 +203,16 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 			start := time.Now()
 
+			log.Debugf("friendscript/http: -> %v %v", req.Method, req.URL)
+
+			if body != nil {
+				log.Debugf("friendscript/http: -> encoded body as %v (%v)", reqargs.RequestType, contentType)
+			}
+
+			for k, vs := range req.Header {
+				log.Debugf("friendscript/http: -> [H] %v=%v", k, strings.Join(vs, `,`))
+			}
+
 			// perform the request
 			if response, err := client.Do(req); err == nil {
 				// build the response
@@ -210,8 +222,12 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 					Took:    int64(time.Since(start).Nanoseconds() / 1e6),
 				}
 
+				log.Debugf("friendscript/http: <- HTTP %v (took %vms)", response.Status, res.Took)
+
 				// add (autotyped) headers
 				for k, vs := range response.Header {
+					log.Debugf("friendscript/http: <- [H] %v=%v", k, strings.Join(vs, `,`))
+
 					if len(vs) == 1 {
 						res.Headers[k] = typeutil.Auto(vs[0])
 					} else {
@@ -231,34 +247,41 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 							res.Length = int64(len(data))
 							res.Body = string(data)
 
-							switch reqargs.ResponseType {
-							case `raw`:
-								break
-							default:
-								// automatically decode response
-								rt := response.Header.Get(`Content-Type`)
+							if res.Length > 0 {
+								log.Debugf("friendscript/http: <- decoding body as %v", reqargs.ResponseType)
 
-								if reqargs.ResponseType != `` {
-									rt = reqargs.ResponseType
-								}
+								switch reqargs.ResponseType {
+								case `raw`:
+									break
+								default:
+									// automatically decode response
+									rt := response.Header.Get(`Content-Type`)
 
-								switch rt {
-								case `application/json`:
-									if err := json.Unmarshal(data, &res.Body); err != nil {
-										return nil, err
+									if reqargs.ResponseType != `` {
+										rt = reqargs.ResponseType
+									}
+
+									switch rt {
+									case `application/json`:
+										if err := json.Unmarshal(data, &res.Body); err != nil {
+											return nil, err
+										}
 									}
 								}
 							}
 						} else {
+							log.Debugf("friendscript/http: <- Read response failed: %v", err)
 							return nil, err
 						}
 					} else {
+						log.Debugf("friendscript/http: <- Decode response failed: %v", err)
 						return nil, err
 					}
 				}
 
 				return res, nil
 			} else {
+				log.Debugf("friendscript/http: <- Request failed: %v", err)
 				return nil, err
 			}
 		} else {
