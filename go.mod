@@ -4,7 +4,7 @@ require (
 	github.com/c-bata/go-prompt v0.2.1
 	github.com/fatih/color v1.7.0
 	github.com/fatih/structs v1.0.0
-	github.com/ghetzel/go-stockutil v1.6.24
+	github.com/ghetzel/go-stockutil v1.6.25
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-tty v0.0.0-20180219170247-931426f7535a // indirect

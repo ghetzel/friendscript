@@ -52,7 +52,7 @@ type RequestArgs struct {
 	DisableVerifySSL bool `json:"disable_verify_ssl"`
 
 	// The path to the root TLS CA bundle to use for verifying peer certificates.
-	CertificateBundle string `json:"certificate_bundle"`
+	CertificateBundle string `json:"ca_bundle"`
 
 	// A comma-separated list of numbers (e.g.: 200) or inclusive number ranges (e.g. 200-399) specifying HTTP statuses that are
 	// expected and non-erroneous.
@@ -210,6 +210,8 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 	// specify CA bundle (if provided)
 	if ca := reqargs.CertificateBundle; ca != `` {
+		log.Debugf("friendscript/http: Using override CA bundle at %v", ca)
+
 		if err := httputil.SetRootCABundle(client, ca); err != nil {
 			return nil, err
 		}
@@ -257,7 +259,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 			}
 
 			for k, vs := range req.Header {
-				log.Debugf("friendscript/http: -> [H] %v=%v", k, strings.Join(vs, `,`))
+				log.Debugf("friendscript/http: -> [H] %v: %v", k, strings.Join(vs, `,`))
 			}
 
 			// perform the request
@@ -274,7 +276,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 				// add (autotyped) headers
 				for k, vs := range response.Header {
-					log.Debugf("friendscript/http: <- [H] %v=%v", k, strings.Join(vs, `,`))
+					log.Debugf("friendscript/http: <- [H] %v: %v", k, strings.Join(vs, `,`))
 
 					if len(vs) == 1 {
 						res.Headers[k] = typeutil.Auto(vs[0])
