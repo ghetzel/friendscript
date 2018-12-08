@@ -18,6 +18,7 @@ import (
 	"github.com/ghetzel/go-stockutil/log"
 	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/ghetzel/go-stockutil/sliceutil"
+	"github.com/ghetzel/go-stockutil/stringutil"
 	"github.com/ghetzel/go-stockutil/typeutil"
 	defaults "github.com/mcuadros/go-defaults"
 )
@@ -49,14 +50,31 @@ type RequestArgs struct {
 
 	// Whether to disable TLS peer verification.
 	DisableVerifySSL bool `json:"disable_verify_ssl"`
+
+	// A comma-separated list of numbers (e.g.: 200) or inclusive number ranges (e.g. 200-399) specifying HTTP statuses that are
+	// expected and non-erroneous.
+	Statuses string `json:"statuses" default:"200-299"`
+
+	// Whether to continue execution if an error status is encountered.
+	ContinueOnError bool `json:"continue_on_error"`
 }
 
-func (self *RequestArgs) Merge(other *RequestArgs) RequestArgs {
-	out := *self
+func (self *RequestArgs) Merge(other *RequestArgs) *RequestArgs {
+	out := &RequestArgs{
+		Headers:          self.Headers,
+		Params:           self.Params,
+		Timeout:          self.Timeout,
+		Body:             self.Body,
+		RequestType:      self.RequestType,
+		ResponseType:     self.ResponseType,
+		DisableVerifySSL: self.DisableVerifySSL,
+		Statuses:         self.Statuses,
+		ContinueOnError:  self.ContinueOnError,
+	}
 
 	if other != nil {
-		out.Headers, _ = maputil.Merge(out, other.Headers)
-		out.Params, _ = maputil.Merge(out, other.Params)
+		out.Headers, _ = maputil.Merge(out.Headers, other.Headers)
+		out.Params, _ = maputil.Merge(out.Params, other.Params)
 
 		if v := other.RequestType; v != `` {
 			out.RequestType = v
@@ -66,8 +84,16 @@ func (self *RequestArgs) Merge(other *RequestArgs) RequestArgs {
 			out.ResponseType = v
 		}
 
+		if v := other.Statuses; v != `` {
+			out.Statuses = v
+		}
+
 		if other.DisableVerifySSL {
 			out.DisableVerifySSL = true
+		}
+
+		if other.ContinueOnError {
+			out.ContinueOnError = true
 		}
 
 		if v := other.Timeout; v > 0 {
@@ -86,6 +112,9 @@ type HttpResponse struct {
 	// The numeric HTTP status code of the response.
 	Status int `json:"status"`
 
+	// A textual description of the HTTP response code.
+	StatusText string `json:"status_text"`
+
 	// The time (in millisecond) that the request took to complete.
 	Took int64 `json:"took"`
 
@@ -100,6 +129,9 @@ type HttpResponse struct {
 
 	// The decoded response body (if any).
 	Body interface{} `json:"body"`
+
+	// If the response status is considered an error, and errors aren't fatal, this will be true.
+	Error bool `json:"error"`
 }
 
 func New(scopeable utils.Scopeable) *Commands {
@@ -217,9 +249,10 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 			if response, err := client.Do(req); err == nil {
 				// build the response
 				res := &HttpResponse{
-					Status:  response.StatusCode,
-					Headers: make(map[string]interface{}),
-					Took:    int64(time.Since(start).Nanoseconds() / 1e6),
+					Status:     response.StatusCode,
+					StatusText: response.Status,
+					Headers:    make(map[string]interface{}),
+					Took:       int64(time.Since(start).Nanoseconds() / 1e6),
 				}
 
 				log.Debugf("friendscript/http: <- HTTP %v (took %vms)", response.Status, res.Took)
@@ -237,6 +270,15 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 				if response.Body != nil {
 					defer response.Body.Close()
+				}
+
+				if isErrorStatus(response.StatusCode, reqargs.Statuses) {
+					if reqargs.ContinueOnError {
+						res.Error = true
+					} else {
+						log.Debugf("friendscript/http: <- Request error: %v", response.Status)
+						return nil, fmt.Errorf("HTTP %v", response.Status)
+					}
 				}
 
 				// decode (i.e.: decompress) response
@@ -351,4 +393,26 @@ func encodeBody(enctype string, body interface{}) (io.Reader, string, error) {
 	}
 
 	return reader, contentType, nil
+}
+
+func isErrorStatus(status int, allowed string) bool {
+	ranges := strings.Split(allowed, `,`)
+
+	for _, rng := range ranges {
+		lowS, highS := stringutil.SplitPair(strings.TrimSpace(rng), `-`)
+		low := int(typeutil.Int(lowS))
+		high := int(typeutil.Int(highS))
+
+		if high == 0 {
+			if status == low {
+				return false
+			}
+		} else {
+			if status >= low && status <= high {
+				return false
+			}
+		}
+	}
+
+	return true
 }

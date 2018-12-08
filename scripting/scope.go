@@ -2,7 +2,6 @@ package scripting
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -204,7 +203,7 @@ func (self *Scope) Interpolate(in string) string {
 				value = ``
 			}
 
-			in = match.ReplaceGroup(1, fmt.Sprintf("%v", value))
+			in = match.ReplaceGroup(1, typeutil.String(value))
 		} else {
 			break
 		}
