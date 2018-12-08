@@ -51,6 +51,9 @@ type RequestArgs struct {
 	// Whether to disable TLS peer verification.
 	DisableVerifySSL bool `json:"disable_verify_ssl"`
 
+	// The path to the root TLS CA bundle to use for verifying peer certificates.
+	CertificateBundle string `json:"certificate_bundle"`
+
 	// A comma-separated list of numbers (e.g.: 200) or inclusive number ranges (e.g. 200-399) specifying HTTP statuses that are
 	// expected and non-erroneous.
 	Statuses string `json:"statuses" default:"200-299"`
@@ -61,20 +64,25 @@ type RequestArgs struct {
 
 func (self *RequestArgs) Merge(other *RequestArgs) *RequestArgs {
 	out := &RequestArgs{
-		Headers:          self.Headers,
-		Params:           self.Params,
-		Timeout:          self.Timeout,
-		Body:             self.Body,
-		RequestType:      self.RequestType,
-		ResponseType:     self.ResponseType,
-		DisableVerifySSL: self.DisableVerifySSL,
-		Statuses:         self.Statuses,
-		ContinueOnError:  self.ContinueOnError,
+		Headers:           self.Headers,
+		Params:            self.Params,
+		Timeout:           self.Timeout,
+		Body:              self.Body,
+		RequestType:       self.RequestType,
+		ResponseType:      self.ResponseType,
+		DisableVerifySSL:  self.DisableVerifySSL,
+		Statuses:          self.Statuses,
+		ContinueOnError:   self.ContinueOnError,
+		CertificateBundle: self.CertificateBundle,
 	}
 
 	if other != nil {
 		out.Headers, _ = maputil.Merge(out.Headers, other.Headers)
 		out.Params, _ = maputil.Merge(out.Params, other.Params)
+
+		if v := other.CertificateBundle; v != `` {
+			out.CertificateBundle = v
+		}
 
 		if v := other.RequestType; v != `` {
 			out.RequestType = v
@@ -198,6 +206,13 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 				InsecureSkipVerify: reqargs.DisableVerifySSL,
 			},
 		},
+	}
+
+	// specify CA bundle (if provided)
+	if ca := reqargs.CertificateBundle; ca != `` {
+		if err := httputil.SetRootCABundle(client, ca); err != nil {
+			return nil, err
+		}
 	}
 
 	// encode the body (if any) in preparation for sending in the request
