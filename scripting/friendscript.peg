@@ -8,6 +8,7 @@ Friendscript       <- _ SHEBANG? _ Block* !.
 
 # Syntactic Punctuation
 # --------------------------------------------------------------------------------------------------
+NL      <- [\n]
 _       <- [ \t\r\n]*
 __      <- [ \t\r\n]+
 ASSIGN  <- _ '->' _
@@ -284,7 +285,7 @@ PositiveInteger    <- [0-9]+
 String             <- ( StringLiteral / StringInterpolated / Heredoc )
 StringLiteral      <- "'" [^']* "'"
 StringInterpolated <- '"' [^"]* '"'
-Heredoc            <- BEGIN "\n" HeredocBody END
+Heredoc            <- BEGIN NL HeredocBody END
 HeredocBody        <- (!END .)*
 NullValue          <- 'null'
 Object             <- OPEN ( _ KeyValuePair _ )* CLOSE
