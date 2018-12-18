@@ -168,16 +168,16 @@ When interpolating, all variables in the current scope and any parent scopes (re
 Friendscript supports a syntax for entering large string values that span multiple lines whose syntax may frequently conflict with Friendscript's own.  These are sometimes referred to as "heredocs", and are particularly useful for including the source code of other languages inside of an automation script.  Here is an example of some inline Javascript:
 
 ```
-example_javascript begin
+example_javascript """
   var tag = document.getElementById('cool_tag');
 
   if(tag) {
     tag.nodeValue = 'My Stuff';
   }
-end
+"""
 ```
 
-Everything between the `begin` and `end` statements is part of the string value passed as the first argument to the `example_javascript` command.  This syntax is accepted wherever a string is, including setting variables and as command option values.
+Everything between the triple-quotes `"""` is part of the string value passed as the first argument to the `example_javascript` command.  This syntax is accepted wherever a string is, including setting variables and as command option values.
 
 ## Conditional Statements
 
