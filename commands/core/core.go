@@ -16,6 +16,7 @@ import (
 	"github.com/ghetzel/go-stockutil/stringutil"
 	"github.com/ghetzel/go-stockutil/timeutil"
 	"github.com/ghetzel/go-stockutil/typeutil"
+	"github.com/kyokomi/emoji"
 	defaults "github.com/mcuadros/go-defaults"
 )
 
@@ -35,8 +36,10 @@ func New(scopeable utils.Scopeable) *Commands {
 
 // Outputs a line to the log.
 func (self *Commands) Log(message interface{}) error {
-	if typeutil.IsScalar(reflect.ValueOf(message)) {
-		fmt.Printf("%v\n", message)
+	if message == nil {
+		return nil
+	} else if typeutil.IsScalar(reflect.ValueOf(message)) {
+		emoji.Printf("%v\n", message)
 	} else if data, err := json.MarshalIndent(message, ``, `  `); err == nil {
 		fmt.Printf(string(data) + "\n")
 	} else {

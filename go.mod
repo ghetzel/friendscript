@@ -6,6 +6,7 @@ require (
 	github.com/fatih/structs v1.0.0
 	github.com/ghetzel/go-stockutil v1.6.29
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
+	github.com/kyokomi/emoji v2.0.0+incompatible
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-tty v0.0.0-20180219170247-931426f7535a // indirect
 	github.com/mcuadros/go-defaults v0.0.0-20161116231230-e1c978be3307
