@@ -12,6 +12,7 @@ NL      <- [\n]
 _       <- [ \t\r\n]*
 __      <- [ \t\r\n]+
 ASSIGN  <- _ '->' _
+TRIQUOT <- _ '"""' _
 BEGIN   <- _ 'begin'
 BREAK   <- _ 'break' _
 CLOSE   <- _ '}' _
@@ -23,7 +24,7 @@ COUNT   <- _ 'count' _
 DECLARE <- _ 'declare' __
 DOT     <- '.'
 ELSE    <- _ 'else' _
-END     <- _ 'end' _
+END     <- NL _ 'end' _
 IF      <- _ 'if' _
 IN      <- __ 'in' __
 INCLUDE <- _ 'include' __
@@ -282,11 +283,13 @@ Float              <- Integer ( '.' [0-9]+ )?
 Boolean            <- ('true' / 'false')
 Integer            <- '-'? PositiveInteger
 PositiveInteger    <- [0-9]+
-String             <- ( StringLiteral / StringInterpolated / Heredoc )
+String             <- ( HeredocTriquote / StringLiteral / StringInterpolated / Heredoc )
 StringLiteral      <- "'" [^']* "'"
 StringInterpolated <- '"' [^"]* '"'
-Heredoc            <- BEGIN NL HeredocBody END
+HeredocTriquote    <- TRIQUOT TriquoteBody TRIQUOT
+TriquoteBody       <- (!TRIQUOT .)*
 HeredocBody        <- (!END .)*
+Heredoc            <- BEGIN NL HeredocBody END
 NullValue          <- 'null'
 Object             <- OPEN ( _ KeyValuePair _ )* CLOSE
 Array              <- '[' _ ExpressionSequence COMMA? ']'

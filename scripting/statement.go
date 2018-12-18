@@ -94,7 +94,13 @@ func (self *Statement) s(node *node32) string {
 
 				return self.Script().Scope().Interpolate(raw)
 
+			case ruleHeredocTriquote:
+				raw = self.raw(child.firstChild(ruleTriquoteBody))
+				return raw
+
 			case ruleHeredoc:
+				log.Warningf("[DEPRECATED] %v: the begin...end heredoc string syntax is deprecated. Please consider the triple-quote (\"\"\") form instead.", self.ctx)
+
 				raw = self.raw(child.firstChild(ruleHeredocBody))
 				lcp := self.Script().lcp()
 
