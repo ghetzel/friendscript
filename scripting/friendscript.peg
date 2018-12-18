@@ -8,12 +8,10 @@ Friendscript       <- _ SHEBANG? _ Block* !.
 
 # Syntactic Punctuation
 # --------------------------------------------------------------------------------------------------
-NL      <- [\n]
 _       <- [ \t\r\n]*
 __      <- [ \t\r\n]+
 ASSIGN  <- _ '->' _
 TRIQUOT <- _ '"""' _
-BEGIN   <- _ 'begin'
 BREAK   <- _ 'break' _
 CLOSE   <- _ '}' _
 COLON   <- _ ':' _
@@ -24,7 +22,6 @@ COUNT   <- _ 'count' _
 DECLARE <- _ 'declare' __
 DOT     <- '.'
 ELSE    <- _ 'else' _
-END     <- NL _ 'end' _
 IF      <- _ 'if' _
 IN      <- __ 'in' __
 INCLUDE <- _ 'include' __
@@ -283,13 +280,11 @@ Float              <- Integer ( '.' [0-9]+ )?
 Boolean            <- ('true' / 'false')
 Integer            <- '-'? PositiveInteger
 PositiveInteger    <- [0-9]+
-String             <- ( HeredocTriquote / StringLiteral / StringInterpolated / Heredoc )
+String             <- ( Triquote / StringLiteral / StringInterpolated )
 StringLiteral      <- "'" [^']* "'"
 StringInterpolated <- '"' [^"]* '"'
-HeredocTriquote    <- TRIQUOT TriquoteBody TRIQUOT
+Triquote           <- TRIQUOT TriquoteBody TRIQUOT
 TriquoteBody       <- (!TRIQUOT .)*
-HeredocBody        <- (!END .)*
-Heredoc            <- BEGIN NL HeredocBody END
 NullValue          <- 'null'
 Object             <- OPEN ( _ KeyValuePair _ )* CLOSE
 Array              <- '[' _ ExpressionSequence COMMA? ']'

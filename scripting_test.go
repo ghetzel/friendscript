@@ -173,8 +173,7 @@ func TestAssignments(t *testing.T) {
 			float64(2),
 			float64(3),
 		},
-		`put_4`:  "\t\tput test four\n\t\tput test\n\t\tput end",
-		`put_4a`: "put test four\n\t\tput test\n\t\tput end\n\t\tend friend end",
+		`put_4`: "put test four\n\t\tput test\n\t\tput end\n\t\tend friend end",
 		`t_maparg`: map[string]interface{}{
 			`one`:   `first`,
 			`two`:   `second`,
@@ -235,18 +234,13 @@ func TestAssignments(t *testing.T) {
     put "test {a}" -> $put_1
     put 'test {a}' -> $put_2
 	put [1, 2, 3] -> $put_3
-	put begin
-		put test four
-		put test
-		put end
-	end -> $put_4
 	put """
 		put test four
 		put test
 		put end
 		end friend end
 
-	""" -> $put_4a
+	""" -> $put_4
 	testing::map_arg 't_maparg' {
 		one:   'first',
 		two:   'second',
@@ -446,8 +440,8 @@ func TestExpressions(t *testing.T) {
 		`cc`:    20,
 		`dd`:    5,
 		`f`:     `This 2 is {b} and done`,
-		`put_a`: `    this is some stuff`,
-		`put_b`: "    buncha\n    muncha\n    cruncha\n    lines",
+		`put_a`: `this is some stuff`,
+		`put_b`: "buncha\n    muncha\n    cruncha\n    lines",
 	}
 
 	script := `
@@ -466,15 +460,15 @@ func TestExpressions(t *testing.T) {
         $dd /= 10
         $f = "This {a}" + ' is {b}' + " and done"
 
-        put begin
+        put """
             this is some stuff
-        end -> $put_a
-        put begin
+        """ -> $put_a
+        put """
             buncha
             muncha
             cruncha
             lines
-        end -> $put_b`
+        """ -> $put_b`
 
 	actual, err := eval(script)
 	assert.NoError(err)
