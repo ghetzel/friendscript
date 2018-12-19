@@ -43,7 +43,7 @@ type RequestArgs struct {
 	Body interface{} `json:"body"`
 
 	// The type of data in Body, specifying how it should be encoded.  Valid values are "raw", "form", and "json"
-	RequestType string `json:"type,omitempty" default:"raw"`
+	RequestType string `json:"request_type,omitempty" default:"json"`
 
 	// Specify how the response body should be decoded.  Can be "raw", or a MIME type that overrides the Content-Type response header.
 	ResponseType string `json:"response_type,omitempty"`

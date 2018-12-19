@@ -290,10 +290,6 @@ Object             <- OPEN ( _ KeyValuePair _ )* CLOSE
 Array              <- '[' _ ExpressionSequence COMMA? ']'
 RegularExpression  <- '/' [^/]+ '/' [ilmsu]*
 KeyValuePair       <- Key COLON KValue COMMA?
-Key                <- Identifier
+Key                <- ( Identifier / StringLiteral / StringInterpolated )
 KValue             <- ( Array / Object / Expression )
-Type               <- ( Array
-                      / Object
-                      / RegularExpression
-                      / ScalarType
-                      )
+Type               <- ( Array / Object / RegularExpression / ScalarType )

@@ -40,7 +40,7 @@ func (self MatchOperator) Evaluate(pattern *regexp.Regexp, want interface{}) boo
 		log.Panicf("malformed expression: %v", err)
 	}
 
-	log.Debugf("RXMO(%v) %v match %v -> %v", self, pattern, want, pattern.MatchString(fmt.Sprintf("%v", want)))
+	// log.Debugf("RXMO(%v) %v match %v -> %v", self, pattern, want, pattern.MatchString(fmt.Sprintf("%v", want)))
 
 	switch self {
 	case matchOp:

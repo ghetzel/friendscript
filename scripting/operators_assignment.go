@@ -86,13 +86,13 @@ func (self AssignmentOperator) Evaluate(lhs interface{}, rhs interface{}) (inter
 	if v, err := exprToValue(lhs); err == nil {
 		lhs = v
 	} else {
-		log.Panicf("malformed expression: %v", err)
+		log.Panicf("malformed  left-hand expression: %v", err)
 	}
 
 	if v, err := exprToValue(rhs); err == nil {
 		rhs = v
 	} else {
-		log.Panicf("malformed expression: %v", err)
+		log.Panicf("malformed right-hand expression (%T): %v", rhs, err)
 	}
 
 	var lv float64
@@ -100,7 +100,7 @@ func (self AssignmentOperator) Evaluate(lhs interface{}, rhs interface{}) (inter
 	var lverr error
 	var rverr error
 
-	log.Debugf("lhs=%T(%v) %v rhs=%T(%v)", lhs, lhs, self, rhs, rhs)
+	// log.Debugf("lhs=%T(%v) %v rhs=%T(%v)", lhs, lhs, self, rhs, rhs)
 
 	lv, lverr = stringutil.ConvertToFloat(lhs)
 	rv, rverr = stringutil.ConvertToFloat(rhs)

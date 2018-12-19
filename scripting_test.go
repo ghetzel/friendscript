@@ -123,14 +123,25 @@ func TestAssignments(t *testing.T) {
 			"Test",
 			3.14159,
 		},
-		`z0`: 1,
-		`z1`: true,
-		`z2`: `Test`,
-		`z3`: 3.14159,
-		`aa`: 1,
-		`bb`: true,
-		`cc`: "Test",
-		`dd`: 3.14159,
+		`z0`:     1,
+		`z1`:     true,
+		`z2`:     `Test`,
+		`z3`:     3.14159,
+		`aa`:     1,
+		`bb`:     true,
+		`cc`:     "Test",
+		`dd`:     3.14159,
+		`eeType`: `pi-3.14159`,
+		`ee0`: map[string]interface{}{
+			`ok`: true,
+			`always`: map[string]interface{}{
+				`finishing`: map[string]interface{}{
+					`each_others`: `sentences`,
+				},
+			},
+			`Content-Type`: `delicatessen/bologna`,
+			`pi-3.14159`:   `yep`,
+		},
 		`ee`: map[string]interface{}{
 			`ok`: true,
 			`always`: map[string]interface{}{
@@ -214,6 +225,18 @@ func TestAssignments(t *testing.T) {
     $z3 = $z[3]
     # capture command results as variables, and also put a bunch of them on the same line
     put 1 -> $aa; put true -> $bb; put "Test" -> $cc; put 3.14159 -> $dd
+	$eeType = "pi-{d}"
+    $ee0 = {
+        'ok': true,
+        "always": {
+            'finishing': {
+                "each_others": "sentences",
+            },
+        },
+		"Content-Type": "delicatessen/bologna",
+		"{eeType}": "yep",
+    }
+
     put {
         ok: true,
         always: {

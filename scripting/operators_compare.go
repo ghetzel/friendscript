@@ -149,7 +149,7 @@ func membershipTest(i int, first interface{}, second interface{}) bool {
 
 func isMemberOf(lhs interface{}, rhs interface{}) bool {
 	if typeutil.IsArray(rhs) {
-		log.Debugf("is %v in %v", lhs, rhs)
+		// log.Debugf("is %v in %v", lhs, rhs)
 		return sliceutil.Contains(rhs, lhs, membershipTest)
 	} else if typeutil.IsMap(rhs) {
 		return sliceutil.Contains(maputil.Keys(rhs), lhs, membershipTest)

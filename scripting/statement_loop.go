@@ -166,7 +166,7 @@ func (self *Loop) ShouldContinue() bool {
 
 	case FixedLengthLoop:
 		if self.iterations < self.UpperBound() {
-			log.Debugf("LOOP iteration %d < %d\n", self.iterations, self.UpperBound())
+			// log.Debugf("LOOP iteration %d < %d\n", self.iterations, self.UpperBound())
 			return true
 		}
 

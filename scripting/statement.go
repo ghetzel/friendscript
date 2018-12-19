@@ -82,6 +82,9 @@ func (self *Statement) s(node *node32) string {
 
 		if child := node.firstChild(); child != nil {
 			switch child.rule() {
+			case ruleIdentifier:
+				return raw
+
 			case ruleStringLiteral:
 				raw = strings.TrimPrefix(raw, `'`)
 				raw = strings.TrimSuffix(raw, `'`)
@@ -269,6 +272,9 @@ func (self *Statement) parseValue(node *node32) (interface{}, error) {
 	}
 
 	switch value.rule() {
+	case ruleIdentifier:
+		return self.s(node), nil
+
 	case ruleExpression:
 		return NewExpression(self, value).Value()
 
