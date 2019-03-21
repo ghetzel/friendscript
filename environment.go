@@ -2,7 +2,6 @@ package friendscript
 
 import (
 	"fmt"
-	"github.com/ghetzel/friendscript/utils"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ghetzel/friendscript/utils"
 
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/fatih/color"
@@ -51,15 +52,18 @@ type Environment struct {
 }
 
 // Create a new scripting environment.
-func NewEnvironment() *Environment {
+func NewEnvironment(data ...map[string]interface{}) *Environment {
 	environment := &Environment{
-		Name: DefaultEnvironmentName,
-		stack: []*scripting.Scope{
-			scripting.NewScope(nil),
-		},
+		Name:           DefaultEnvironmentName,
 		modules:        make(map[string]Module),
 		replHandlers:   make(map[string]InteractiveHandlerFunc),
 		filterCommands: make(map[string]bool),
+	}
+
+	environment.pushScope(scripting.NewScope(nil))
+
+	for _, d := range data {
+		environment.SetData(d)
 	}
 
 	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment))
@@ -333,7 +337,21 @@ func (self *Environment) Scope() *scripting.Scope {
 	if len(self.stack) > 0 {
 		return self.stack[len(self.stack)-1]
 	} else {
-		return nil
+		panic("Scope not available yet")
+	}
+}
+
+func (self *Environment) Set(key string, value interface{}) {
+	self.Scope().Set(key, value)
+}
+
+func (self *Environment) Get(key string, fallback ...interface{}) interface{} {
+	return self.Scope().Get(key, fallback...)
+}
+
+func (self *Environment) SetData(data map[string]interface{}) {
+	for k, v := range data {
+		self.Set(k, v)
 	}
 }
 
