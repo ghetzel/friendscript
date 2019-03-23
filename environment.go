@@ -235,7 +235,7 @@ func (self *Environment) Evaluate(script *scripting.Friendscript, scope ...*scri
 	if len(scope) > 0 && scope[0] != nil {
 		rootScope = scope[0]
 	} else {
-		rootScope = scripting.NewScope(nil)
+		rootScope = self.Scope()
 	}
 
 	self.script = script
@@ -324,7 +324,9 @@ func (self *Environment) pushScope(scope *scripting.Scope) {
 	// 	log.Debugf("PUSH scope(%d) is ROOT", scope.Level())
 	// }
 
-	self.stack = append(self.stack, scope)
+	if len(self.stack) == 0 || scope != self.Scope() {
+		self.stack = append(self.stack, scope)
+	}
 
 	if self.script != nil {
 		self.script.SetScope(self.Scope())
