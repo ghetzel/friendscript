@@ -152,6 +152,19 @@ func (self *Commands) Upper(input interface{}) (string, error) {
 	return strings.ToUpper(typeutil.V(input).String()), nil
 }
 
+// Return an array of Unicode codepoints for each character in the given string.
+func (self *Commands) Codepoints(input interface{}) ([]int, error) {
+	s := typeutil.String(input)
+	runes := []rune(s)
+	out := make([]int, len(runes))
+
+	for i, r := range runes {
+		out[i] = int(r)
+	}
+
+	return out, nil
+}
+
 type TrimArgs struct {
 	Prefix string `json:"prefix"`
 	Suffix string `json:"suffix"`
