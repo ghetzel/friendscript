@@ -12,7 +12,7 @@ import (
 	"github.com/ghetzel/go-stockutil/httputil"
 	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/ghetzel/go-stockutil/typeutil"
-	"github.com/stretchr/testify/require"
+	"github.com/ghetzel/testify/require"
 	"github.com/yudai/gojsondiff"
 	"github.com/yudai/gojsondiff/formatter"
 )
