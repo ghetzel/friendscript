@@ -1,82 +1,108 @@
 package scripting
 
 type Friendscript Peg {
-  runtime
+    runtime
 }
 
 Friendscript       <- _ SHEBANG? _ Block* !.
 
-# Syntactic Punctuation
+# Punctuation and Keywords
 # --------------------------------------------------------------------------------------------------
-_       <- [ \t\r\n]*
-__      <- [ \t\r\n]+
-ASSIGN  <- _ '->' _
-TRIQUOT <- _ '"""' _
-BREAK   <- _ 'break' _
-CLOSE   <- _ '}' _
-COLON   <- _ ':' _
-COMMA   <- _ ',' _
-Comment <- _ '#' [^\n]*
-CONT    <- _ 'continue' _
-COUNT   <- _ 'count' _
-DECLARE <- _ 'declare' __
-DOT     <- '.'
-ELSE    <- _ 'else' _
-IF      <- _ 'if' _
-IN      <- __ 'in' __
-INCLUDE <- _ 'include' __
-LOOP    <- _ 'loop' _
-NOOP    <- SEMI
-NOT     <- _ 'not' __
-OPEN    <- _ '{' _
-SCOPE   <- '::'
-SEMI    <- _ ';' _
-SHEBANG <- '#!' [^\n]+ [\n]
-SKIPVAR <- _ '_' _
-UNSET   <- _ 'unset' __
+_                  <- [ \t\r\n]*
+__                 <- [ \t\r\n]+
+ASSIGN             <- _ '->' _
+TRIQUOT            <- _ '"""' _
+BREAK              <- _ 'break' _
+CLOSE              <- _ '}' _
+COLON              <- _ ':' _
+COMMA              <- _ ',' _
+COMMENT            <- _ '#' [^\n]*
+CONT               <- _ 'continue' _
+COUNT              <- _ 'count' _
+DECLARE            <- _ 'declare' __
+DOT                <- '.'
+ELSE               <- _ 'else' _
+IF                 <- _ 'if' _
+IN                 <- __ 'in' __
+INCLUDE            <- _ 'include' __
+LOOP               <- _ 'loop' _
+NOOP               <- SEMI
+NOT                <- _ 'not' __
+OPEN               <- _ '{' _
+SCOPE              <- '::'
+SEMI               <- _ ';' _
+SHEBANG            <- '#!' [^\n]+ [\n]
+SKIPVAR            <- _ '_' _
+UNSET              <- _ 'unset' __
+
+# Data Types
+# --------------------------------------------------------------------------------------------------
+ScalarType         <- ( Boolean / Float / Integer / String / NullValue )
+Identifier         <- [[a-z_]][[a-z0-9_]]*
+Float              <- Integer ( '.' [0-9]+ )?
+Boolean            <- ('true' / 'false')
+Integer            <- '-'? PositiveInteger
+PositiveInteger    <- [0-9]+
+String             <- ( Triquote / StringLiteral / StringInterpolated )
+StringLiteral      <- "'" [^']* "'"
+StringInterpolated <- '"' [^"]* '"'
+Triquote           <- TRIQUOT TriquoteBody TRIQUOT
+TriquoteBody       <- (!TRIQUOT .)*
+NullValue          <- 'null'
+Object             <- OPEN ( _ KeyValuePair _ )* CLOSE
+Array              <- '[' _ ExpressionSequence COMMA? ']'
+RegularExpression  <- '/' [^/]+ '/' [ilmsu]*
+KeyValuePair       <- Key COLON KValue COMMA?
+Key                <- ( Identifier / StringLiteral / StringInterpolated )
+KValue             <- ( Array / Object / Expression )
+Type               <- ( Array / Object / RegularExpression / ScalarType )
+
+# Mathematical Operators
+# --------------------------------------------------------------------------------------------------
+Exponentiate       <- _ '**' _
+Multiply           <- _ '*' _
+Divide             <- _ '/' _
+Modulus            <- _ '%' _
+Add                <- _ '+' _
+Subtract           <- _ '-' _
+BitwiseAnd         <- _ '&' _
+BitwiseOr          <- _ '|' _
+BitwiseNot         <- _ '~' _
+BitwiseXor         <- _ '^' _
+
+# Regexp Operators
+# --------------------------------------------------------------------------------------------------
+MatchOperator      <- ( Match / Unmatch )
+Unmatch            <- _ '!~' _
+Match              <- _ '=~' _
 
 # Operators
 # --------------------------------------------------------------------------------------------------
-Operator     <- _ ( Exponentiate
-                  / Multiply
-                  / Divide
-                  / Modulus
-                  / Add
-                  / Subtract
-                  / BitwiseAnd
-                  / BitwiseOr
-                  / BitwiseNot
-                  / BitwiseXor
-                  ) _
-
-
-Exponentiate <- _ '**' _
-Multiply     <- _ '*' _
-Divide       <- _ '/' _
-Modulus      <- _ '%' _
-Add          <- _ '+' _
-Subtract     <- _ '-' _
-BitwiseAnd   <- _ '&' _
-BitwiseOr    <- _ '|' _
-BitwiseNot   <- _ '~' _
-BitwiseXor   <- _ '^' _
-
-MatchOperator
-             <- ( Match / Unmatch )
-Unmatch      <- _ '!~' _
-Match        <- _ '=~' _
+Operator     <- _ (
+    Exponentiate /
+    Multiply /
+    Divide /
+    Modulus /
+    Add /
+    Subtract /
+    BitwiseAnd /
+    BitwiseOr /
+    BitwiseNot /
+    BitwiseXor
+) _
 
 # Assignment Operators
 # --------------------------------------------------------------------------------------------------
-AssignmentOperator <- _ ( AssignEq
-                        / StarEq
-                        / DivEq
-                        / PlusEq
-                        / MinusEq
-                        / AndEq
-                        / OrEq
-                        / Append
-                        ) _
+AssignmentOperator <- _ (
+    AssignEq /
+    StarEq /
+    DivEq /
+    PlusEq /
+    MinusEq /
+    AndEq /
+    OrEq /
+    Append
+) _
 
 AssignEq           <- _ '='  _
 StarEq             <- _ '*=' _
@@ -89,15 +115,16 @@ Append             <- _ '<<' _
 
 # Comparison Operators
 # --------------------------------------------------------------------------------------------------
-ComparisonOperator <- _ ( Equality
-                        / NonEquality
-                        / GreaterEqual
-                        / LessEqual
-                        / GreaterThan
-                        / LessThan
-                        / Membership
-                        / NonMembership
-                        ) _
+ComparisonOperator <- _ (
+    Equality /
+    NonEquality /
+    GreaterEqual /
+    LessEqual /
+    GreaterThan /
+    LessThan /
+    Membership /
+    NonMembership
+) _
 
 Equality           <- _ '==' _
 NonEquality        <- _ '!=' _
@@ -123,12 +150,13 @@ VariableIndex
     <- Expression
 
 Block
-    <- _ ( Comment / FlowControlWord / StatementBlock ) SEMI? _
+    <- _ ( COMMENT / FlowControlWord / StatementBlock ) SEMI? _
 
 FlowControlWord
-    <- ( FlowControlBreak
-       / FlowControlContinue
-       )
+    <- (
+        FlowControlBreak /
+        FlowControlContinue
+    )
 
 FlowControlBreak
     <- BREAK PositiveInteger?
@@ -137,7 +165,14 @@ FlowControlContinue
     <- CONT PositiveInteger?
 
 StatementBlock
-    <- ( NOOP / Assignment / Directive / Conditional / Loop / Command )
+    <- (
+        NOOP /
+        Assignment /
+        Directive /
+        Conditional /
+        Loop /
+        Command
+    )
 
 # Assignment
 # -------------------------------------------------------------------------------------------------
@@ -154,7 +189,7 @@ VariableSequence
     <- ( Variable COMMA )* Variable
 
 ExpressionSequence
-    <- (Expression COMMA)* Expression
+    <- ( Expression COMMA )* Expression
 
 Expression
     <- _ ExpressionLHS ExpressionRHS? _
@@ -223,12 +258,13 @@ ElseStanza
 # Loop
 # -------------------------------------------------------------------------------------------------
 Loop
-    <- LOOP ( OPEN Block* CLOSE
-            / LoopConditionFixedLength OPEN Block* CLOSE
-            / LoopConditionIterable    OPEN Block* CLOSE
-            / LoopConditionBounded     OPEN Block* CLOSE
-            / LoopConditionTruthy      OPEN Block* CLOSE
-            )
+    <- LOOP (
+        OPEN Block* CLOSE /
+        LoopConditionFixedLength OPEN Block* CLOSE /
+        LoopConditionIterable    OPEN Block* CLOSE /
+        LoopConditionBounded     OPEN Block* CLOSE /
+        LoopConditionTruthy      OPEN Block* CLOSE
+    )
 
 LoopConditionFixedLength
     <- COUNT ( Integer / Variable )
@@ -249,11 +285,12 @@ LoopConditionTruthy
     <- ConditionalExpression
 
 ConditionalExpression
-    <- NOT? ( ConditionWithAssignment
-            / ConditionWithCommand
-            / ConditionWithRegex
-            / ConditionWithComparator
-            )
+    <- NOT? (
+        ConditionWithAssignment /
+        ConditionWithCommand /
+        ConditionWithRegex /
+        ConditionWithComparator
+    )
 
 ConditionWithAssignment
     <- Assignment SEMI ConditionalExpression
@@ -273,23 +310,3 @@ ConditionWithComparatorLHS
 ConditionWithComparatorRHS
     <- ( ComparisonOperator Expression )
 
-
-ScalarType         <- ( Boolean / Float / Integer / String / NullValue )
-Identifier         <- [[a-z_]][[a-z0-9_]]*
-Float              <- Integer ( '.' [0-9]+ )?
-Boolean            <- ('true' / 'false')
-Integer            <- '-'? PositiveInteger
-PositiveInteger    <- [0-9]+
-String             <- ( Triquote / StringLiteral / StringInterpolated )
-StringLiteral      <- "'" [^']* "'"
-StringInterpolated <- '"' [^"]* '"'
-Triquote           <- TRIQUOT TriquoteBody TRIQUOT
-TriquoteBody       <- (!TRIQUOT .)*
-NullValue          <- 'null'
-Object             <- OPEN ( _ KeyValuePair _ )* CLOSE
-Array              <- '[' _ ExpressionSequence COMMA? ']'
-RegularExpression  <- '/' [^/]+ '/' [ilmsu]*
-KeyValuePair       <- Key COLON KValue COMMA?
-Key                <- ( Identifier / StringLiteral / StringInterpolated )
-KValue             <- ( Array / Object / Expression )
-Type               <- ( Array / Object / RegularExpression / ScalarType )
