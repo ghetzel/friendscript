@@ -264,11 +264,7 @@ func (self *Environment) Run(scriptName string, options *utils.RunOptions) (inte
 	}
 
 	// prepend the dirname of the calling script to the searchPaths
-	switch options.BasePath {
-	case ``, `.`:
-	default:
-		searchPaths = append([]string{options.BasePath}, searchPaths...)
-	}
+	searchPaths = append([]string{options.BasePath}, searchPaths...)
 
 	for _, searchPath := range searchPaths {
 		var candidate = filepath.Join(searchPath, scriptName+`.fs`)
