@@ -15,6 +15,7 @@ import (
 
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/fatih/color"
+	cmdassert "github.com/ghetzel/friendscript/commands/assert"
 	"github.com/ghetzel/friendscript/commands/core"
 	cmdfile "github.com/ghetzel/friendscript/commands/file"
 	cmdfmt "github.com/ghetzel/friendscript/commands/fmt"
@@ -69,6 +70,7 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 	}
 
 	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment, environment))
+	environment.RegisterModule(`assert`, cmdassert.New(environment))
 	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
 	environment.RegisterModule(`file`, cmdfile.New(environment))
 	environment.RegisterModule(`utils`, cmdutils.New(environment))

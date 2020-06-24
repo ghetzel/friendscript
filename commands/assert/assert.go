@@ -6,26 +6,24 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ghetzel/friendscript"
 	"github.com/ghetzel/friendscript/utils"
 	defaults "github.com/ghetzel/go-defaults"
 	"github.com/ghetzel/go-stockutil/stringutil"
 	"github.com/ghetzel/go-stockutil/timeutil"
 	"github.com/ghetzel/go-stockutil/typeutil"
-	"github.com/ghetzel/go-webfriend/browser"
 )
 
 type Commands struct {
-	friendscript.Module
-	browser *browser.Browser
+	utils.Module
+	scopeable utils.Scopeable
 }
 
-func New(browser *browser.Browser, scopeable utils.Scopeable) *Commands {
-	cmd := &Commands{}
+func New(scopeable utils.Scopeable) *Commands {
+	var cmd = &Commands{
+		scopeable: scopeable,
+	}
 
-	cmd.browser = browser
-	cmd.Module = friendscript.CreateModule(cmd)
-
+	cmd.Module = utils.NewDefaultExecutor(cmd)
 	return cmd
 }
 
