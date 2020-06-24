@@ -23,6 +23,8 @@ github.com/ghetzel/go-stockutil v1.8.4 h1:6j2iYVciDnCgfEmllWq2zbf7MkzUoN0b6jJu5P
 github.com/ghetzel/go-stockutil v1.8.4/go.mod h1:tq1ycYqlC1z9ZX/Pvgz+sePJvpHsJbd692w8936ed+U=
 github.com/ghetzel/go-stockutil v1.8.42 h1:CX6tmW4LjUnJi8oRR/SwMnb8RyxBsmjvja5Ia/lZ8Dw=
 github.com/ghetzel/go-stockutil v1.8.42/go.mod h1:Upalidr5qSOijbhYb6yED2X2rDoFFFVhl2z0H/hyCmw=
+github.com/ghetzel/go-stockutil v1.8.72 h1:CT5e8F3rWRalBAPaCi0LL1uD8rm/rtpd6FH2/IExPUA=
+github.com/ghetzel/go-stockutil v1.8.72/go.mod h1:CODe2TOlt9Lp4lG/woz9jdnG+w++UDy0by3FhiOds+A=
 github.com/ghetzel/testify v1.4.1 h1:wpJirdM+znAnxWruGDBdIys5aU+wGJHNUTkgEo4PYwk=
 github.com/ghetzel/testify v1.4.1/go.mod h1:FwvFn1OiGEUgzhS3ySCjTBG7/sez0WRvOAxz5uQU8so=
 github.com/ghetzel/uuid v0.0.0-20171129191014-dec09d789f3d h1:YVJe7KwVYazt90hCc/q2dYJVS3062AY6QdT6iHd+Kh8=
@@ -32,6 +34,8 @@ github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5y
 github.com/grandcat/zeroconf v0.0.0-20190118114326-c2d1b4121200/go.mod h1:YjKB0WsLXlMkO9p+wGTCoPIDGRJH0mz7E526PxkQVxI=
 github.com/h2non/filetype v1.0.8 h1:le8gpf+FQA0/DlDABbtisA1KiTS0Xi+YSC/E8yY3Y14=
 github.com/h2non/filetype v1.0.8/go.mod h1:isekKqOuhMj+s/7r3rIeTErIRy4Rub5uBWHfvMusLMU=
+github.com/h2non/filetype v1.0.13-0.20200520201155-df519de6e270 h1:NJYu+dyMrWcvIcvCsVGx0sT9rHOl1dsztF2eIrSHLcM=
+github.com/h2non/filetype v1.0.13-0.20200520201155-df519de6e270/go.mod h1:319b3zT68BvV+WRj7cwy856M2ehB3HqNOt6sy1HndBY=
 github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-multierror v1.0.0 h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=

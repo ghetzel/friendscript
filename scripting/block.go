@@ -42,6 +42,7 @@ func (self *Block) SourceContext() *Context {
 		self.ctx = &Context{
 			Type:                BlockContext,
 			Script:              self.friendscript,
+			Filename:            self.friendscript.Filename(),
 			AbsoluteStartOffset: int(self.node.begin),
 			Length:              int(self.node.end - self.node.begin),
 		}

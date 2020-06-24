@@ -59,6 +59,7 @@ func (self *Statement) SourceContext() *Context {
 		self.ctx = &Context{
 			Type:                StatementContext,
 			Script:              self.Script(),
+			Filename:            self.Script().Filename(),
 			Parent:              self.block.SourceContext(),
 			AbsoluteStartOffset: int(self.node.begin),
 			Length:              int(self.node.end - self.node.begin),

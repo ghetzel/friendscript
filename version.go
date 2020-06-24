@@ -1,3 +1,3 @@
 package friendscript
 
-const Version = `0.6.7`
+const Version = `0.7.0`

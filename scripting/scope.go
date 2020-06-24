@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/ghetzel/go-stockutil/log"
 	"github.com/ghetzel/go-stockutil/maputil"
@@ -24,9 +25,13 @@ var UnqualifiedModuleName = `core`
 type tracer int
 
 type Scope struct {
-	parent   *Scope
-	data     map[string]interface{}
-	isolated bool
+	parent         *Scope
+	data           map[string]interface{}
+	isolatedReads  bool
+	isolatedWrites bool
+	mostRecentKey  string
+	evallock       sync.Mutex
+	ctx            *Context
 }
 
 func NewScope(parent *Scope) *Scope {
@@ -36,9 +41,17 @@ func NewScope(parent *Scope) *Scope {
 	}
 }
 
+func NewEphemeralScope(parent *Scope) *Scope {
+	scope := NewScope(nil)
+	scope.isolatedReads = false
+	scope.isolatedWrites = true
+	return scope
+}
+
 func NewIsolatedScope(parent *Scope) *Scope {
 	scope := NewScope(parent)
-	scope.isolated = true
+	scope.isolatedReads = true
+	scope.isolatedWrites = true
 	return scope
 }
 
@@ -47,6 +60,37 @@ func (self *Scope) Level() int {
 		return 0
 	} else {
 		return self.parent.Level() + 1
+	}
+}
+
+func (self *Scope) MostRecentValue() interface{} {
+	if self.mostRecentKey == `` {
+		return nil
+	}
+
+	return self.Get(self.mostRecentKey)
+}
+
+// Sets the scope evaluation lock and store the given context.
+func (self *Scope) LockContext(ctx *Context) {
+	self.evallock.Lock()
+	self.ctx = ctx
+}
+
+// Clears the evaluation context and clears the lock.
+func (self *Scope) Unlock() {
+	self.ctx = nil
+	self.evallock.Unlock()
+}
+
+// Returnt the current evaluation context (if any, may be nil).
+func (self *Scope) EvalContext() *Context {
+	if self.ctx != nil {
+		return self.ctx
+	} else if self.parent != nil {
+		return self.parent.EvalContext()
+	} else {
+		return nil
 	}
 }
 
@@ -59,7 +103,7 @@ func (self *Scope) String() string {
 }
 
 func (self *Scope) Data() map[string]interface{} {
-	output := make(map[string]interface{})
+	var output = make(map[string]interface{})
 
 	maputil.Walk(self.data, func(value interface{}, path []string, isLeaf bool) error {
 		if resolvable, ok := value.(Resolvable); ok {
@@ -93,6 +137,7 @@ func (self *Scope) Set(key string, value interface{}) {
 	key = self.prepVariableName(key)
 	scope := self.OwnerOf(key)
 	scope.set(key, value)
+	self.mostRecentKey = key
 }
 
 func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
@@ -116,7 +161,7 @@ func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
 // scope becomes the owner of the key and will be returned.
 //
 func (self *Scope) OwnerOf(key string) *Scope {
-	if self.isolated || self.IsLocal(key) {
+	if self.isolatedWrites || self.IsLocal(key) {
 		return self
 	} else {
 		_, scope := self.get(key)
@@ -174,7 +219,7 @@ func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope
 
 		// fmt.Printf("SGET scope(%d)[%v] -> %T(%v)\n", self.Level(), key, v, v)
 		return v, self
-	} else if self.parent != nil {
+	} else if self.parent != nil && !self.isolatedReads {
 		// fmt.Printf("SGET scope(%d)[%v] -> PARENT\n", self.Level(), key)
 
 		if v, scope := self.parent.get(key, fallback...); v != nil {

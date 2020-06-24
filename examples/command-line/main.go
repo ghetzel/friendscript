@@ -7,16 +7,15 @@ import (
 
 	"github.com/ghetzel/friendscript"
 	"github.com/ghetzel/friendscript/commands/core"
-	"github.com/ghetzel/friendscript/utils"
 )
 
 type CoreCommands struct {
 	*core.Commands
 }
 
-func NewCoreCommands(env utils.Scopeable) *CoreCommands {
+func NewCoreCommands(env *friendscript.Environment) *CoreCommands {
 	cmd := &CoreCommands{
-		Commands: core.New(env),
+		Commands: core.New(env, env),
 	}
 
 	cmd.SetInstance(cmd)

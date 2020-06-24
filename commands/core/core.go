@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -23,11 +24,13 @@ import (
 type Commands struct {
 	utils.Module
 	scopeable utils.Scopeable
+	runnable  utils.Runnable
 }
 
-func New(scopeable utils.Scopeable) *Commands {
+func New(scopeable utils.Scopeable, runnable utils.Runnable) *Commands {
 	cmd := &Commands{
 		scopeable: scopeable,
+		runnable:  runnable,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
@@ -134,26 +137,50 @@ func (self *Commands) Fail(message string) error {
 }
 
 type RunArgs struct {
-	Data          interface{} `json:"data"`           // null
-	Isolated      bool        `json:"isolated"`       // true
-	PreserveState bool        `json:"preserve_state"` // true
-	MergeScopes   bool        `json:"merge_scopes"`   // false
-	ResultKey     string      `json:"result_key"`     // result
+
+	// Specifies a key in the scope of the evaluate script that will be used as the result value of this command.
+	ResultKey string `json:"result_key"` // result
+
+	// Provides a set of initial variables to the script.
+	Data map[string]interface{} `json:"data"` // null
+
+	// If true, the scope of the running script will not be able to modify data in the parent scope.
+	Isolated bool `json:"isolated" default:"true"`
 }
 
-// [SKIP]
 // Evaluates another Friendscript loaded from another file. The filename is the
 // absolute path or basename of the file to search for in the FRIENDSCRIPT_PATH
 // environment variable to load and evaluate. The FRIENDSCRIPT_PATH variable
 // behaves like the the traditional *nix PATH variable, wherein multiple paths
-// can be specified as a colon-separated (:) list. The current working directory
-// will always be checked first.
+// can be specified as a colon-separated (:) list. The directory of the calling
+// script (if available) will always be checked first.
 //
 // Returns: The value of the variable named by result_key at the end of the
 // evaluated script's execution.
 //
 func (self *Commands) Run(filename string, args *RunArgs) (interface{}, error) {
-	return nil, fmt.Errorf(`Not Implemented Yet`)
+	if self.runnable == nil {
+		return nil, fmt.Errorf("no environment found")
+	}
+
+	if args == nil {
+		args = &RunArgs{}
+	}
+
+	defaults.SetDefaults(args)
+
+	var basePath string
+
+	if ctx := self.scopeable.Scope().EvalContext(); ctx != nil {
+		basePath = filepath.Dir(ctx.Filename)
+	}
+
+	return self.runnable.Run(filename, &utils.RunOptions{
+		Isolated:  false,
+		ResultKey: args.ResultKey,
+		Data:      args.Data,
+		BasePath:  basePath,
+	})
 }
 
 // Pauses execution of the current script for the given duration.

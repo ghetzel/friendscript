@@ -17,6 +17,7 @@ type Context struct {
 	Type                ContextType
 	Label               string
 	Script              *Friendscript
+	Filename            string
 	Parent              *Context
 	AbsoluteStartOffset int
 	Length              int

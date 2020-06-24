@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -21,6 +22,7 @@ import (
 	cmdutils "github.com/ghetzel/friendscript/commands/utils"
 	cmdvars "github.com/ghetzel/friendscript/commands/vars"
 	"github.com/ghetzel/friendscript/scripting"
+	"github.com/ghetzel/go-stockutil/fileutil"
 	"github.com/ghetzel/go-stockutil/log"
 	"github.com/ghetzel/go-stockutil/maputil"
 	"github.com/ghetzel/go-stockutil/sliceutil"
@@ -66,7 +68,7 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 		environment.SetData(d)
 	}
 
-	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment))
+	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment, environment))
 	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
 	environment.RegisterModule(`file`, cmdfile.New(environment))
 	environment.RegisterModule(`utils`, cmdutils.New(environment))
@@ -187,10 +189,8 @@ func (self *Environment) UnregisterContextHandler(id int) {
 }
 
 func (self *Environment) EvaluateFile(path string, scope ...*scripting.Scope) (*scripting.Scope, error) {
-	if file, err := os.Open(path); err == nil {
-		defer file.Close()
-
-		return self.EvaluateReader(file, scope...)
+	if script, err := scripting.LoadFromFile(path); err == nil {
+		return self.Evaluate(script, scope...)
 	} else {
 		return nil, err
 	}
@@ -248,6 +248,61 @@ func (self *Environment) Evaluate(script *scripting.Friendscript, scope ...*scri
 	}
 
 	return self.Scope(), nil
+}
+
+func (self *Environment) Run(scriptName string, options *utils.RunOptions) (interface{}, error) {
+	var fsp = os.Getenv(`FRIENDSCRIPT_PATH`)
+	var searchPaths = sliceutil.CompactString(strings.Split(fsp, `:`))
+
+	scriptName = strings.TrimSuffix(scriptName, `.fs`)
+
+	if options == nil {
+		options = &utils.RunOptions{
+			Isolated: true,
+			BasePath: `.`,
+		}
+	}
+
+	// prepend the dirname of the calling script to the searchPaths
+	switch options.BasePath {
+	case ``, `.`:
+	default:
+		searchPaths = append([]string{options.BasePath}, searchPaths...)
+	}
+
+	for _, searchPath := range searchPaths {
+		var candidate = filepath.Join(searchPath, scriptName+`.fs`)
+
+		if !fileutil.IsNonemptyFile(candidate) {
+			continue
+		}
+
+		var scope *scripting.Scope
+
+		if options.Isolated {
+			scope = scripting.NewEphemeralScope(self.Scope())
+		} else {
+			scope = scripting.NewScope(self.Scope())
+		}
+
+		if len(options.Data) > 0 {
+			for k, v := range options.Data {
+				scope.Set(k, v)
+			}
+		}
+
+		if res, err := self.EvaluateFile(candidate, scope); err == nil {
+			if options.ResultKey == `` {
+				return res.MostRecentValue(), err
+			} else {
+				return res.Get(options.ResultKey), nil
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	return nil, fmt.Errorf("could not locate script %q", scriptName)
 }
 
 func (self *Environment) replCompleter(d prompt.Document) []prompt.Suggest {
@@ -503,7 +558,7 @@ func (self *Environment) evaluateDirective(directive *scripting.Directive) error
 }
 
 func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclare bool) (string, error) {
-	modname, name := command.Name()
+	var modname, name = command.Name()
 
 	// prevent the execution of disabled commands
 	if reject, _ := self.filterCommands[modname+`::`+name]; reject {
@@ -511,7 +566,7 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 	}
 
 	log.Debugf("EXEC %v::%v", modname, name)
-	ctx := command.SourceContext()
+	var ctx = command.SourceContext()
 	self.sendContextUpdate(ctx, false)
 
 	if first, rest, err := command.Args(); err == nil {
@@ -520,17 +575,23 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 			// log.Debugf("CMND called %T(%v), %T(%v)", first, first, rest, rest)
 
 			// tell that module to execute the command, giving it the name and arguments
-			if result, err := module.ExecuteCommand(name, first, rest); err == nil {
+			var evalscope = self.Scope()
+
+			evalscope.LockContext(ctx)
+			result, err := module.ExecuteCommand(name, first, rest)
+			evalscope.Unlock()
+
+			if err == nil {
 				self.sendContextUpdate(ctx, true)
 				// log.Debugf("CMND returned %T(%v)", result, result)
 
 				// if there is an output variable destination, set that in the current scope
 				if resultVar := command.OutputName(); resultVar != `` {
 					if forceDeclare {
-						self.Scope().Declare(resultVar)
+						evalscope.Declare(resultVar)
 					}
 
-					self.Scope().Set(resultVar, result)
+					evalscope.Set(resultVar, result)
 
 					return resultVar, nil
 				}

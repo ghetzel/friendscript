@@ -3,6 +3,8 @@ package scripting
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
@@ -26,7 +28,8 @@ type mappable interface {
 //go:generate peg -inline friendscript.peg
 
 type runtime struct {
-	scope *Scope
+	scope    *Scope
+	filename string
 }
 
 type nodeFunc func(node *node32, depth int)
@@ -53,8 +56,32 @@ func Parse(input string) (*Friendscript, error) {
 	}
 }
 
+func LoadFromFile(filename string) (*Friendscript, error) {
+	if file, err := os.Open(filename); err == nil {
+		defer file.Close()
+
+		if data, err := ioutil.ReadAll(file); err == nil {
+			if fs, err := Parse(string(data)); err == nil {
+				fs.filename = filename
+
+				return fs, nil
+			} else {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+}
+
 func (self *Friendscript) SetScope(scope *Scope) {
 	self.runtime.scope = scope
+}
+
+func (self *Friendscript) Filename() string {
+	return self.runtime.filename
 }
 
 func (self *Friendscript) Scope() *Scope {

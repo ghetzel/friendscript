@@ -22,6 +22,7 @@ func (self *Command) SourceContext() *Context {
 			Type:                CommandContext,
 			Label:               fmt.Sprintf("%s::%s", mod, name),
 			Script:              self.statement.Script(),
+			Filename:            self.statement.Script().Filename(),
 			Parent:              self.statement.SourceContext(),
 			AbsoluteStartOffset: int(self.node.begin),
 			Length:              int(self.node.end - self.node.begin),
