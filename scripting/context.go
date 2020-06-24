@@ -29,3 +29,21 @@ type Context struct {
 func (self *Context) String() string {
 	return fmt.Sprintf("[%v] %v %d + %d", self.Type, self.Label, self.AbsoluteStartOffset, self.Length)
 }
+
+func (self *Context) Snippet() string {
+	if self.Script != nil {
+		var src = self.Script.Buffer
+
+		if self.AbsoluteStartOffset >= 0 && self.Length > 0 {
+			if self.AbsoluteStartOffset < len(src) {
+				var endIndex = self.AbsoluteStartOffset + self.Length
+
+				if endIndex <= len(src) {
+					return src[self.AbsoluteStartOffset:endIndex]
+				}
+			}
+		}
+	}
+
+	return ``
+}

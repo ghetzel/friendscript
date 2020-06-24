@@ -27,12 +27,22 @@ func New(scopeable utils.Scopeable) *Commands {
 	return cmd
 }
 
+func (self *Commands) contextualError(msg string) error {
+	if ctx := self.scopeable.Scope().EvalContext(); ctx != nil {
+		if snip := ctx.Snippet(); snip != `` {
+			return fmt.Errorf("%s: %s", snip, msg)
+		}
+	}
+
+	return fmt.Errorf(msg)
+}
+
 // Return an error if the given value is null or zero-length.
 func (self *Commands) Exists(value interface{}) error {
 	if typeutil.V(value).String() != `` {
 		return nil
 	} else {
-		return fmt.Errorf("Expected non-empty value")
+		return self.contextualError("Expected non-empty value")
 	}
 }
 
@@ -41,7 +51,7 @@ func (self *Commands) Empty(value interface{}) error {
 	if typeutil.IsEmpty(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected empty value")
+		return self.contextualError("Expected empty value")
 	}
 }
 
@@ -50,7 +60,7 @@ func (self *Commands) Null(value interface{}) error {
 	if value == nil {
 		return nil
 	} else {
-		return fmt.Errorf("Expected null value")
+		return self.contextualError("Expected null value")
 	}
 }
 
@@ -59,7 +69,7 @@ func (self *Commands) NotNull(value interface{}) error {
 	if value != nil {
 		return nil
 	} else {
-		return fmt.Errorf("Expected non-null value")
+		return self.contextualError("Expected non-null value")
 	}
 }
 
@@ -68,7 +78,7 @@ func (self *Commands) True(value interface{}) error {
 	if stringutil.IsBooleanTrue(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected true value")
+		return self.contextualError("Expected true value")
 	}
 }
 
@@ -77,7 +87,7 @@ func (self *Commands) False(value interface{}) error {
 	if stringutil.IsBooleanFalse(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected false value")
+		return self.contextualError("Expected false value")
 	}
 }
 
@@ -86,7 +96,7 @@ func (self *Commands) IsNumeric(value interface{}) error {
 	if typeutil.IsKindOfInteger(value) || typeutil.IsKindOfFloat(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected numeric value")
+		return self.contextualError("Expected numeric value")
 	}
 }
 
@@ -95,7 +105,7 @@ func (self *Commands) IsBoolean(value interface{}) error {
 	if typeutil.IsKindOfBool(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected boolean value")
+		return self.contextualError("Expected boolean value")
 	}
 }
 
@@ -104,7 +114,7 @@ func (self *Commands) IsString(value interface{}) error {
 	if typeutil.IsKindOfString(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected string value")
+		return self.contextualError("Expected string value")
 	}
 }
 
@@ -113,7 +123,7 @@ func (self *Commands) IsScalar(value interface{}) error {
 	if typeutil.IsScalar(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected numeric value")
+		return self.contextualError("Expected numeric value")
 	}
 }
 
@@ -122,7 +132,7 @@ func (self *Commands) IsTime(value interface{}) error {
 	if stringutil.IsTime(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected time value")
+		return self.contextualError("Expected time value")
 	}
 }
 
@@ -131,7 +141,7 @@ func (self *Commands) IsDuration(value interface{}) error {
 	if _, err := timeutil.ParseDuration(fmt.Sprintf("%v", value)); err == nil {
 		return nil
 	} else {
-		return fmt.Errorf("Expected duration value")
+		return self.contextualError("Expected duration value")
 	}
 }
 
@@ -140,7 +150,7 @@ func (self *Commands) IsObject(value interface{}) error {
 	if typeutil.IsMap(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected object")
+		return self.contextualError("Expected object")
 	}
 }
 
@@ -149,7 +159,7 @@ func (self *Commands) IsArray(value interface{}) error {
 	if typeutil.IsArray(value) {
 		return nil
 	} else {
-		return fmt.Errorf("Expected array value")
+		return self.contextualError("Expected array value")
 	}
 }
 
