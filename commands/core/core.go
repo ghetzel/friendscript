@@ -123,7 +123,7 @@ func (self *Commands) Env(name string, args *EnvArgs) (interface{}, error) {
 	} else if args.Required {
 		return nil, fmt.Errorf("Environment variable %q was not specified", name)
 	} else {
-		return nil, nil
+		return args.Fallback, nil
 	}
 }
 
