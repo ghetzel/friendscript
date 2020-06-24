@@ -263,12 +263,21 @@ func (self *Environment) Run(scriptName string, options *utils.RunOptions) (inte
 		}
 	}
 
-	// prepend the dirname of the calling script to the searchPaths
-	searchPaths = append([]string{options.BasePath}, searchPaths...)
+	// if the script is an absolute path, then we won't be searching for anything
+	if filepath.IsAbs(scriptName) {
+		searchPaths = []string{scriptName}
+	} else {
+		// prepend the dirname of the calling script to the searchPaths
+		searchPaths = append([]string{options.BasePath}, searchPaths...)
 
-	for _, searchPath := range searchPaths {
-		var candidate = filepath.Join(searchPath, scriptName+`.fs`)
+		// join all the search paths with the candidate script name
+		for i, sp := range searchPaths {
+			searchPaths[i] = filepath.Join(sp, scriptName+`.fs`)
+		}
+	}
 
+	// find the file
+	for _, candidate := range searchPaths {
 		if !fileutil.IsNonemptyFile(candidate) {
 			continue
 		}
