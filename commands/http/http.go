@@ -36,6 +36,9 @@ type RequestArgs struct {
 	// Query string parameters to add to the request.
 	Params map[string]interface{} `json:"params"`
 
+	// A map of cookie key=value pairs to include in the request.
+	Cookies map[string]interface{} `json:"cookies"`
+
 	// The amount of time to wait for the request to complete.
 	Timeout time.Duration `json:"timeout" default:"30s"`
 
@@ -79,6 +82,7 @@ func (self *RequestArgs) Merge(other *RequestArgs) *RequestArgs {
 	if other != nil {
 		out.Headers, _ = maputil.Merge(out.Headers, other.Headers)
 		out.Params, _ = maputil.Merge(out.Params, other.Params)
+		out.Cookies, _ = maputil.Merge(out.Cookies, other.Cookies)
 
 		if v := other.CertificateBundle; v != `` {
 			out.CertificateBundle = v
@@ -197,7 +201,8 @@ func (self *Commands) Head(url string, args *RequestArgs) (*HttpResponse, error)
 }
 
 func (self *Commands) request(method string, url string, args *RequestArgs) (*HttpResponse, error) {
-	reqargs := self.defaults.Merge(args)
+	// this is the bit that takes any defaults set via http::defaults and overlays the per-request values
+	var reqargs = self.defaults.Merge(args)
 
 	client := &http.Client{
 		Timeout: reqargs.Timeout,
@@ -260,6 +265,16 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 			for k, vs := range req.Header {
 				log.Debugf("friendscript/http: -> [H] %v: %v", k, strings.Join(vs, `,`))
+			}
+
+			// populate cookies
+			for k, v := range args.Cookies {
+				req.AddCookie(&http.Cookie{
+					Name:  k,
+					Value: typeutil.String(v),
+				})
+
+				log.Debugf("friendscript/http: -> [C] %v: %v", k, v)
 			}
 
 			// perform the request

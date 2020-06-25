@@ -23,6 +23,12 @@ func TestPost(t *testing.T) {
 			assert.EqualValues(`this is a test`, x[`k1`])
 			assert.EqualValues(`1`, req.Header.Get(`X-Friendscript-Testing`))
 
+		case `/cookies`:
+			cookie, err := req.Cookie(`OneTestCookie`)
+			assert.NoError(err)
+			assert.NotNil(cookie)
+			assert.EqualValues(`Greetings!`, cookie.Value)
+
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
@@ -31,7 +37,7 @@ func TestPost(t *testing.T) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	client := New(nil)
+	var client = New(nil)
 
 	client.Post(fmt.Sprintf("%v/json", server.URL), &RequestArgs{
 		Headers: map[string]interface{}{
@@ -40,6 +46,14 @@ func TestPost(t *testing.T) {
 		RequestType: `json`,
 		Body: map[string]interface{}{
 			`k1`: `this is a test`,
+		},
+	})
+
+	client = New(nil)
+
+	client.Get(fmt.Sprintf("%v/cookies", server.URL), &RequestArgs{
+		Cookies: map[string]interface{}{
+			`OneTestCookie`: `Greetings!`,
 		},
 	})
 }
