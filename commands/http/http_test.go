@@ -39,7 +39,7 @@ func TestPost(t *testing.T) {
 
 	var client = New(nil)
 
-	client.Post(fmt.Sprintf("%v/json", server.URL), &RequestArgs{
+	_, err := client.Post(fmt.Sprintf("%v/json", server.URL), &RequestArgs{
 		Headers: map[string]interface{}{
 			`X-Friendscript-Testing`: 1,
 		},
@@ -49,13 +49,26 @@ func TestPost(t *testing.T) {
 		},
 	})
 
-	client = New(nil)
+	assert.NoError(err)
 
-	client.Get(fmt.Sprintf("%v/cookies", server.URL), &RequestArgs{
+	_, err = client.Get(fmt.Sprintf("%v/cookies", server.URL), &RequestArgs{
 		Cookies: map[string]interface{}{
 			`OneTestCookie`: `Greetings!`,
 		},
 	})
+
+	assert.NoError(err)
+
+	assert.NoError(client.Defaults(&RequestArgs{
+		Cookies: map[string]interface{}{
+			`OneTestCookie`: `Greetings!`,
+		},
+	}))
+
+	assert.NoError(err)
+
+	_, err = client.Get(fmt.Sprintf("%v/cookies", server.URL), nil)
+	assert.NoError(err)
 }
 
 func TestIsErrorStatus(t *testing.T) {

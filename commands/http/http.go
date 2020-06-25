@@ -66,9 +66,10 @@ type RequestArgs struct {
 }
 
 func (self *RequestArgs) Merge(other *RequestArgs) *RequestArgs {
-	out := &RequestArgs{
+	var out = &RequestArgs{
 		Headers:           self.Headers,
 		Params:            self.Params,
+		Cookies:           self.Cookies,
 		Timeout:           self.Timeout,
 		Body:              self.Body,
 		RequestType:       self.RequestType,
@@ -268,19 +269,21 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 			}
 
 			// populate cookies
-			for k, v := range args.Cookies {
-				req.AddCookie(&http.Cookie{
-					Name:  k,
-					Value: typeutil.String(v),
-				})
+			if len(reqargs.Cookies) > 0 {
+				for k, v := range reqargs.Cookies {
+					req.AddCookie(&http.Cookie{
+						Name:  k,
+						Value: typeutil.String(v),
+					})
 
-				log.Debugf("friendscript/http: -> [C] %v: %v", k, v)
+					log.Debugf("friendscript/http: -> [C] %v: %v", k, v)
+				}
 			}
 
 			// perform the request
 			if response, err := client.Do(req); err == nil {
 				// build the response
-				res := &HttpResponse{
+				var res = &HttpResponse{
 					Status:     response.StatusCode,
 					StatusText: response.Status,
 					Headers:    make(map[string]interface{}),
