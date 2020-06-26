@@ -51,6 +51,8 @@ func (self *CoreCommands) Ls(path string) ([]string, error) {
 }
 
 func main() {
+	// log.SetLevelString(`debug`)
+
 	// create a new Friendscript scripting environment
 	environment := friendscript.NewEnvironment()
 

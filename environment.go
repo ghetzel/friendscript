@@ -20,6 +20,7 @@ import (
 	cmdfile "github.com/ghetzel/friendscript/commands/file"
 	cmdfmt "github.com/ghetzel/friendscript/commands/fmt"
 	cmdhttp "github.com/ghetzel/friendscript/commands/http"
+	cmdparse "github.com/ghetzel/friendscript/commands/parse"
 	cmdutils "github.com/ghetzel/friendscript/commands/utils"
 	cmdvars "github.com/ghetzel/friendscript/commands/vars"
 	"github.com/ghetzel/friendscript/scripting"
@@ -75,11 +76,12 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 
 	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment))
 	environment.RegisterModule(`assert`, cmdassert.New(environment))
-	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
 	environment.RegisterModule(`file`, cmdfile.New(environment))
+	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
+	environment.RegisterModule(`http`, cmdhttp.New(environment))
+	environment.RegisterModule(`parse`, cmdparse.New(environment))
 	environment.RegisterModule(`utils`, cmdutils.New(environment))
 	environment.RegisterModule(`vars`, cmdvars.New(environment))
-	environment.RegisterModule(`http`, cmdhttp.New(environment))
 
 	// use the "http" module (and its 🔔bells🔔 & whistles) to retrieve HTTP(S) links
 	environment.RegisterPathReader(func(path string) (io.ReadCloser, error) {
@@ -90,12 +92,12 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 			if mod, ok := environment.modules[`http`]; ok {
 				if chttp, ok := mod.(*cmdhttp.Commands); ok {
 					if res, err := chttp.Get(path, &cmdhttp.RequestArgs{
-						ResponseType: `raw`,
+						RawBody: true,
 					}); err == nil {
 						if rc, ok := res.Body.(io.ReadCloser); ok {
 							return rc, nil
 						} else {
-							return nil, fmt.Errorf("invalid response type")
+							return nil, fmt.Errorf("invalid response type (%T)", res.Body)
 						}
 					} else {
 						return nil, err

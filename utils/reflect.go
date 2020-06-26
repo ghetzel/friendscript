@@ -54,13 +54,32 @@ func GetFunctionByName(from interface{}, name string) (reflect.Value, error) {
 	}
 }
 
+// CallCommandFunction is where the process of turning Friendscript commands+parameters into Golang
+// function calls happens.  This is what the function does:
+//
+// This Friendscript:
+//   http::get "https://example.com" {
+//     headers: {
+//       "User-Agent": "friendscript",
+//     },
+//   }
+//
+// ...is executed as if it were:
+//   httpModule.Get("https://example.com", &RequestArgs{
+//     Headers: map[string]interface{}{
+//       "User-Agent": "friendscript",
+//     },
+//   })
+//
 func CallCommandFunction(from interface{}, name string, first interface{}, rest map[string]interface{}) (interface{}, error) {
 	if fn, err := GetFunctionByName(from, name); err == nil {
-		inputs := []interface{}{first, rest}
-		arguments := make([]reflect.Value, fn.Type().NumIn())
+		var inputs = []interface{}{first, rest}
+		var arguments = make([]reflect.Value, fn.Type().NumIn())
 
+		// loop through the arguments the target function takes, building an equally-sized list
+		// of reflect.Value instances containing the Golang value we work out using various magicks.
 		for i := 0; i < len(arguments); i++ {
-			argT := fn.Type().In(i)
+			var argT = fn.Type().In(i)
 
 			// first and foremost, initialize the argument to its zero value
 			arguments[i] = reflect.Zero(argT)
@@ -93,7 +112,7 @@ func CallCommandFunction(from interface{}, name string, first interface{}, rest 
 					// map arguments are used to populate newly instantiated structs
 					if typeutil.IsMap(inputs[i]) {
 						if argT.Kind() == reflect.Struct {
-							inputM := maputil.DeepCopy(inputs[i])
+							var inputM = maputil.DeepCopy(inputs[i])
 
 							if len(inputM) > 0 && arguments[i].IsValid() {
 								if err := maputil.TaggedStructFromMap(inputM, arguments[i], `json`); err != nil {
@@ -108,12 +127,13 @@ func CallCommandFunction(from interface{}, name string, first interface{}, rest 
 			}
 		}
 
-		returns := fn.Call(arguments)
+		// NOTE: it happens here.
+		var returns = fn.Call(arguments)
 
 		switch len(returns) {
 		case 2:
 			if lastT := returns[1].Type(); lastT.Implements(errorInterface) {
-				value := returns[0].Interface()
+				var value = returns[0].Interface()
 
 				if v2 := returns[1].Interface(); v2 == nil {
 					err = nil

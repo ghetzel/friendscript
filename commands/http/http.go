@@ -63,6 +63,9 @@ type RequestArgs struct {
 
 	// Whether to continue execution if an error status is encountered.
 	ContinueOnError bool `json:"continue_on_error"`
+
+	// Specify that absolutely no processing should be done on the response body.
+	RawBody bool `json:"raw"`
 }
 
 func (self *RequestArgs) Merge(other *RequestArgs) *RequestArgs {
@@ -78,12 +81,17 @@ func (self *RequestArgs) Merge(other *RequestArgs) *RequestArgs {
 		Statuses:          self.Statuses,
 		ContinueOnError:   self.ContinueOnError,
 		CertificateBundle: self.CertificateBundle,
+		RawBody:           self.RawBody,
 	}
 
 	if other != nil {
 		out.Headers, _ = maputil.Merge(out.Headers, other.Headers)
 		out.Params, _ = maputil.Merge(out.Params, other.Params)
 		out.Cookies, _ = maputil.Merge(out.Cookies, other.Cookies)
+
+		if other.RawBody {
+			out.RawBody = true
+		}
 
 		if v := other.CertificateBundle; v != `` {
 			out.CertificateBundle = v
@@ -303,10 +311,6 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 					}
 				}
 
-				if response.Body != nil {
-					defer response.Body.Close()
-				}
-
 				if isErrorStatus(response.StatusCode, reqargs.Statuses) {
 					if reqargs.ContinueOnError {
 						res.Error = true
@@ -319,36 +323,44 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 				// decode (i.e.: decompress) response
 				if response.ContentLength < 0 || response.ContentLength > 0 {
 					if decoded, err := httputil.DecodeResponse(response); err == nil {
-						// read and parse response body
-						if data, err := ioutil.ReadAll(decoded); err == nil {
-							res.Length = int64(len(data))
-							res.Body = string(data)
+						if reqargs.RawBody {
+							res.Body = ioutil.NopCloser(decoded)
+							res.Length = 0
+						} else {
+							if response.Body != nil {
+								defer response.Body.Close()
+							}
 
-							if res.Length > 0 {
-								log.Debugf("friendscript/http: <- decoding body as %v", reqargs.ResponseType)
+							if data, err := ioutil.ReadAll(decoded); err == nil {
+								res.Length = int64(len(data))
+								res.Body = string(data)
 
-								switch reqargs.ResponseType {
-								case `raw`:
-									break
-								default:
-									// automatically decode response
-									rt := response.Header.Get(`Content-Type`)
+								if res.Length > 0 {
+									log.Debugf("friendscript/http: <- decoding body as %v", reqargs.ResponseType)
 
-									if reqargs.ResponseType != `` {
-										rt = reqargs.ResponseType
-									}
+									switch reqargs.ResponseType {
+									case `raw`:
+										break
+									default:
+										// automatically decode response
+										rt := response.Header.Get(`Content-Type`)
 
-									switch rt {
-									case `application/json`:
-										if err := json.Unmarshal(data, &res.Body); err != nil {
-											return nil, err
+										if reqargs.ResponseType != `` {
+											rt = reqargs.ResponseType
+										}
+
+										switch rt {
+										case `application/json`:
+											if err := json.Unmarshal(data, &res.Body); err != nil {
+												return nil, err
+											}
 										}
 									}
 								}
+							} else {
+								log.Debugf("friendscript/http: <- Read response failed: %v", err)
+								return nil, err
 							}
-						} else {
-							log.Debugf("friendscript/http: <- Read response failed: %v", err)
-							return nil, err
 						}
 					} else {
 						log.Debugf("friendscript/http: <- Decode response failed: %v", err)

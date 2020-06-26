@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/ghetzel/friendscript/utils"
 	defaults "github.com/mcuadros/go-defaults"
@@ -50,11 +51,13 @@ type ReadArgs struct {
 }
 
 type ReadResponse struct {
-	// The readable data.
-	Data io.Reader `json:"data"`
+	Data []byte `json:"data"`
 
 	// The length of the data (in bytes).
 	Length int64 `json:"length,omitempty"`
+
+	// The amount of time it took to complete reading the data.
+	Took time.Duration `json:"took"`
 }
 
 func (self *Commands) Read(fileOrReader interface{}, args *ReadArgs) (*ReadResponse, error) {
@@ -63,6 +66,8 @@ func (self *Commands) Read(fileOrReader interface{}, args *ReadArgs) (*ReadRespo
 	}
 
 	defaults.SetDefaults(args)
+
+	var start = time.Now()
 
 	// get a readable stream representing the source path we were given
 	if stream, err := self.env.Open(fileOrReader); err == nil {
@@ -91,7 +96,8 @@ func (self *Commands) Read(fileOrReader interface{}, args *ReadArgs) (*ReadRespo
 		}
 
 		// whatever is in the buffer, that's what you get.
-		response.Data = buf
+		response.Data = buf.Bytes()
+		response.Took = time.Since(start)
 
 		return response, nil
 	} else {
@@ -117,6 +123,9 @@ type WriteResponse struct {
 
 	// The size of the data (in bytes).
 	Size int64 `json:"size,omitempty"`
+
+	// The amount of time it took to complete writing the data.
+	Took time.Duration `json:"took"`
 }
 
 // Write a value or a stream of data to a file at the given path.  The destination path can be a local
@@ -129,6 +138,7 @@ func (self *Commands) Write(destination interface{}, args *WriteArgs) (*WriteRes
 
 	defaults.SetDefaults(args)
 
+	var start = time.Now()
 	var response = new(WriteResponse)
 	var writer io.Writer
 
@@ -178,6 +188,8 @@ func (self *Commands) Write(destination interface{}, args *WriteArgs) (*WriteRes
 		} else {
 			err = fmt.Errorf("Must specify source data or a discrete value to write")
 		}
+
+		response.Took = time.Since(start)
 
 		// if whatever write (or write attempt) we just did succeeded...
 		if err == nil {

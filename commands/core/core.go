@@ -39,6 +39,8 @@ func New(env utils.Runtime) *Commands {
 func (self *Commands) Log(message interface{}) error {
 	if message == nil {
 		return nil
+	} else if b, ok := message.([]byte); ok {
+		fmt.Printf("<%d bytes>\n", len(b))
 	} else if typeutil.IsScalar(reflect.ValueOf(message)) {
 		emoji.Printf("%v\n", message)
 	} else if data, err := json.MarshalIndent(message, ``, `  `); err == nil {

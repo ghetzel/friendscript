@@ -316,8 +316,10 @@ func mapifyStruct(in interface{}) interface{} {
 	if m, ok := in.(mappable); ok {
 		return m.ToMap()
 
+	} else if b, ok := in.([]byte); ok {
+		return b
 	} else if typeutil.IsArray(in) {
-		elems := make([]interface{}, sliceutil.Len(in))
+		var elems = make([]interface{}, sliceutil.Len(in))
 
 		// work a little to get structs/mappable objects turned into maps
 		sliceutil.Each(in, func(i int, elem interface{}) error {
@@ -327,7 +329,7 @@ func mapifyStruct(in interface{}) interface{} {
 
 		return elems
 	} else if typeutil.IsStruct(in) {
-		return maputil.DeepCopyStruct(in)
+		return maputil.M(in).MapNative()
 	} else {
 		return in
 	}

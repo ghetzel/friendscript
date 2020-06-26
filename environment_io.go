@@ -1,12 +1,14 @@
 package friendscript
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 
 	"github.com/ghetzel/friendscript/utils"
+	"github.com/ghetzel/go-stockutil/typeutil"
 )
 
 // Registers a new handler function that will be used for turning paths into writable streams.
@@ -65,7 +67,13 @@ func (self *Environment) GetReaderForPath(path string) (io.ReadCloser, error) {
 func (self *Environment) Open(fileOrReader interface{}) (io.ReadCloser, error) {
 	var rc io.ReadCloser
 
-	if filename, ok := fileOrReader.(string); ok {
+	if b, ok := fileOrReader.([]byte); ok {
+		rc = ioutil.NopCloser(bytes.NewBuffer(b))
+	} else if i, ok := fileOrReader.([]interface{}); ok {
+		rc = ioutil.NopCloser(bytes.NewBuffer(
+			typeutil.Bytes(i),
+		))
+	} else if filename, ok := fileOrReader.(string); ok {
 		if file, err := self.GetReaderForPath(filename); err == nil {
 			rc = file
 		} else {
@@ -74,7 +82,7 @@ func (self *Environment) Open(fileOrReader interface{}) (io.ReadCloser, error) {
 	} else if r, ok := fileOrReader.(io.Reader); ok {
 		rc = ioutil.NopCloser(r)
 	} else {
-		return nil, fmt.Errorf("argument must be a string or stream")
+		return nil, fmt.Errorf("argument must be a string or stream, got: %T", fileOrReader)
 	}
 
 	if rc == nil {
