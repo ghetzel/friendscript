@@ -25,8 +25,8 @@ import (
 
 type Commands struct {
 	utils.Module
-	scopeable utils.Scopeable
-	defaults  RequestArgs
+	env      utils.Runtime
+	defaults RequestArgs
 }
 
 type RequestArgs struct {
@@ -147,13 +147,13 @@ type HttpResponse struct {
 	Error bool `json:"error"`
 }
 
-func New(scopeable utils.Scopeable) *Commands {
+func New(env utils.Runtime) *Commands {
 	reqargs := &RequestArgs{}
 	defaults.SetDefaults(reqargs)
 
 	cmd := &Commands{
-		scopeable: scopeable,
-		defaults:  *reqargs,
+		env:      env,
+		defaults: *reqargs,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)

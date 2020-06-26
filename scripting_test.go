@@ -19,12 +19,12 @@ import (
 
 type testCommands struct {
 	utils.Module
-	scopeable utils.Scopeable
+	env utils.Runtime
 }
 
-func newTestCommands(scopeable utils.Scopeable) *testCommands {
+func newTestCommands(env utils.Runtime) *testCommands {
 	cmd := &testCommands{
-		scopeable: scopeable,
+		env: env,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
@@ -32,7 +32,7 @@ func newTestCommands(scopeable utils.Scopeable) *testCommands {
 }
 
 func (self *testCommands) MapArg(key string, m map[string]interface{}) error {
-	self.scopeable.Scope().Set(strings.TrimSpace(key), m)
+	self.env.Scope().Set(strings.TrimSpace(key), m)
 	return nil
 }
 
@@ -64,7 +64,7 @@ func TestListCommands(t *testing.T) {
 	commands := env.Commands()
 
 	assert.Contains(commands, `core::log`)
-	assert.Contains(commands, `file::open`)
+	assert.Contains(commands, `file::read`)
 	assert.Contains(commands, `fmt::trim`)
 	assert.Contains(commands, `testing::map_arg`)
 	assert.Contains(commands, `testing::noop`)

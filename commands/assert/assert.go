@@ -15,12 +15,12 @@ import (
 
 type Commands struct {
 	utils.Module
-	scopeable utils.Scopeable
+	env utils.Runtime
 }
 
-func New(scopeable utils.Scopeable) *Commands {
+func New(env utils.Runtime) *Commands {
 	var cmd = &Commands{
-		scopeable: scopeable,
+		env: env,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
@@ -28,7 +28,7 @@ func New(scopeable utils.Scopeable) *Commands {
 }
 
 func (self *Commands) contextualError(msg string) error {
-	if ctx := self.scopeable.Scope().EvalContext(); ctx != nil {
+	if ctx := self.env.Scope().EvalContext(); ctx != nil {
 		if snip := ctx.Snippet(); snip != `` {
 			return fmt.Errorf("%s: %s", snip, msg)
 		}

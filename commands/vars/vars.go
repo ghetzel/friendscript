@@ -14,12 +14,12 @@ import (
 
 type Commands struct {
 	utils.Module
-	scopeable utils.Scopeable
+	env utils.Runtime
 }
 
-func New(scopeable utils.Scopeable) *Commands {
+func New(env utils.Runtime) *Commands {
 	cmd := &Commands{
-		scopeable: scopeable,
+		env: env,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
@@ -28,7 +28,7 @@ func New(scopeable utils.Scopeable) *Commands {
 
 // Return a sorted list of all variable names in the current scope.
 func (self *Commands) Keys() ([]string, error) {
-	data := self.scopeable.Scope().Data()
+	data := self.env.Scope().Data()
 	if flattened, err := maputil.CoalesceMap(data, `.`); err == nil {
 		keys := maputil.StringKeys(flattened)
 		sort.Strings(keys)
@@ -40,7 +40,7 @@ func (self *Commands) Keys() ([]string, error) {
 
 // Unset the value at the given key.
 func (self *Commands) Clear(key string) {
-	self.scopeable.Scope().Set(key, nil)
+	self.env.Scope().Set(key, nil)
 }
 
 type GetArgs struct {
@@ -55,7 +55,7 @@ func (self *Commands) Get(key string, args *GetArgs) (interface{}, error) {
 
 	defaults.SetDefaults(args)
 
-	return self.scopeable.Scope().Get(key, args.Fallback), nil
+	return self.env.Scope().Get(key, args.Fallback), nil
 }
 
 type InterpolateArgs struct {
@@ -64,7 +64,7 @@ type InterpolateArgs struct {
 
 // Return a value interpolated with values from a scope or ones that are explicitly provided.
 func (self *Commands) Interpolate(format string, args *InterpolateArgs) (string, error) {
-	return self.scopeable.Scope().Interpolate(format), nil
+	return self.env.Scope().Interpolate(format), nil
 }
 
 type SetArgs struct {
@@ -89,7 +89,7 @@ func (self *Commands) Set(key string, args *SetArgs) (interface{}, error) {
 		}
 	}
 
-	self.scopeable.Scope().Set(key, args.Value)
+	self.env.Scope().Set(key, args.Value)
 	return args.Value, nil
 }
 
@@ -105,7 +105,7 @@ func (self *Commands) Ensure(key string, args *EnsureArgs) error {
 
 	defaults.SetDefaults(args)
 
-	if self.scopeable.Scope().Get(key) != nil {
+	if self.env.Scope().Get(key) != nil {
 		return nil
 	} else {
 		if args.Message != `` {
@@ -131,13 +131,13 @@ func (self *Commands) Push(key string, args *PushArgs) error {
 
 	var newValue interface{}
 
-	if existing := self.scopeable.Scope().Get(key); existing != nil {
+	if existing := self.env.Scope().Get(key); existing != nil {
 		newValue = append(sliceutil.Sliceify(existing), args.Value)
 	} else {
 		newValue = sliceutil.Sliceify(args.Value)
 	}
 
-	self.scopeable.Scope().Set(key, newValue)
+	self.env.Scope().Set(key, newValue)
 	return nil
 }
 
@@ -147,21 +147,21 @@ func (self *Commands) Push(key string, args *PushArgs) error {
 func (self *Commands) Pop(key string) (interface{}, error) {
 	var value interface{}
 
-	if existing := self.scopeable.Scope().Get(key); existing != nil {
+	if existing := self.env.Scope().Get(key); existing != nil {
 		values := sliceutil.Sliceify(existing)
 
 		switch len(values) {
 		case 0:
 			// clear key, return nil
-			self.scopeable.Scope().Set(key, nil)
+			self.env.Scope().Set(key, nil)
 		case 1:
 			// clear key, return only value
 			value = values[0]
-			self.scopeable.Scope().Set(key, nil)
+			self.env.Scope().Set(key, nil)
 		default:
 			// set existing array to all but last item, return last item
 			value = values[0]
-			self.scopeable.Scope().Set(key, values[1:])
+			self.env.Scope().Set(key, values[1:])
 		}
 	}
 

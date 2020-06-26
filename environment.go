@@ -52,6 +52,8 @@ type Environment struct {
 	contextHandlers []ContextHandlerFunc
 	chlock          sync.Mutex
 	filterCommands  map[string]bool
+	pathWriters     []utils.PathWriterFunc
+	pathReaders     []utils.PathReaderFunc
 }
 
 // Create a new scripting environment.
@@ -61,6 +63,8 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 		modules:        make(map[string]Module),
 		replHandlers:   make(map[string]InteractiveHandlerFunc),
 		filterCommands: make(map[string]bool),
+		pathWriters:    make([]utils.PathWriterFunc, 0),
+		pathReaders:    make([]utils.PathReaderFunc, 0),
 	}
 
 	environment.pushScope(scripting.NewScope(nil))
@@ -69,13 +73,39 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 		environment.SetData(d)
 	}
 
-	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment, environment))
+	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment))
 	environment.RegisterModule(`assert`, cmdassert.New(environment))
 	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
 	environment.RegisterModule(`file`, cmdfile.New(environment))
 	environment.RegisterModule(`utils`, cmdutils.New(environment))
 	environment.RegisterModule(`vars`, cmdvars.New(environment))
 	environment.RegisterModule(`http`, cmdhttp.New(environment))
+
+	// use the "http" module (and its 🔔bells🔔 & whistles) to retrieve HTTP(S) links
+	environment.RegisterPathReader(func(path string) (io.ReadCloser, error) {
+		var scheme, _ = stringutil.SplitPair(strings.ToLower(path), `:`)
+
+		switch scheme {
+		case `http`, `https`:
+			if mod, ok := environment.modules[`http`]; ok {
+				if chttp, ok := mod.(*cmdhttp.Commands); ok {
+					if res, err := chttp.Get(path, &cmdhttp.RequestArgs{
+						ResponseType: `raw`,
+					}); err == nil {
+						if rc, ok := res.Body.(io.ReadCloser); ok {
+							return rc, nil
+						} else {
+							return nil, fmt.Errorf("invalid response type")
+						}
+					} else {
+						return nil, err
+					}
+				}
+			}
+		}
+
+		return nil, nil
+	})
 
 	return environment
 }

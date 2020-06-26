@@ -23,14 +23,12 @@ import (
 
 type Commands struct {
 	utils.Module
-	scopeable utils.Scopeable
-	runnable  utils.Runnable
+	env utils.Runtime
 }
 
-func New(scopeable utils.Scopeable, runnable utils.Runnable) *Commands {
+func New(env utils.Runtime) *Commands {
 	cmd := &Commands{
-		scopeable: scopeable,
-		runnable:  runnable,
+		env: env,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
@@ -159,7 +157,7 @@ type RunArgs struct {
 // evaluated script's execution.
 //
 func (self *Commands) Run(filename string, args *RunArgs) (interface{}, error) {
-	if self.runnable == nil {
+	if self.env == nil {
 		return nil, fmt.Errorf("no environment found")
 	}
 
@@ -171,11 +169,11 @@ func (self *Commands) Run(filename string, args *RunArgs) (interface{}, error) {
 
 	var basePath string
 
-	if ctx := self.scopeable.Scope().EvalContext(); ctx != nil {
+	if ctx := self.env.Scope().EvalContext(); ctx != nil {
 		basePath = filepath.Dir(ctx.Filename)
 	}
 
-	return self.runnable.Run(filename, &utils.RunOptions{
+	return self.env.Run(filename, &utils.RunOptions{
 		Isolated:  false,
 		ResultKey: args.ResultKey,
 		Data:      args.Data,

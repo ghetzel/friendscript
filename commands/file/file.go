@@ -14,12 +14,12 @@ import (
 
 type Commands struct {
 	utils.Module
-	scopeable utils.Scopeable
+	env utils.Runtime
 }
 
-func New(scopeable utils.Scopeable) *Commands {
+func New(env utils.Runtime) *Commands {
 	cmd := &Commands{
-		scopeable: scopeable,
+		env: env,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
@@ -41,20 +41,67 @@ func (self *Commands) Temp(args *TempArgs) (*os.File, error) {
 	return ioutil.TempFile(``, args.Prefix)
 }
 
-func (self *Commands) Open(filename string) (*os.File, error) {
-	return os.Open(filename)
+type ReadArgs struct {
+	// Whether to attempt to close the source (if possible) after reading.
+	Autoclose bool `json:"autoclose" default:"true"`
+
+	// The amount of data (in bytes) to read from the readable stream.
+	Length int64 `json:"length" default:"-1"`
 }
 
-func (self *Commands) Create(filename string) (*os.File, error) {
-	return os.Create(filename)
+type ReadResponse struct {
+	// The readable data.
+	Data io.Reader `json:"data"`
+
+	// The length of the data (in bytes).
+	Length int64 `json:"length,omitempty"`
 }
 
-func (self *Commands) Close(file *os.File) error {
-	return file.Close()
+func (self *Commands) Read(fileOrReader interface{}, args *ReadArgs) (*ReadResponse, error) {
+	if args == nil {
+		args = new(ReadArgs)
+	}
+
+	defaults.SetDefaults(args)
+
+	// get a readable stream representing the source path we were given
+	if stream, err := self.env.Open(fileOrReader); err == nil {
+		var buf = bytes.NewBuffer(nil)
+		var response = new(ReadResponse)
+
+		// if we're supposed to close the source, defer that now
+		if args.Autoclose {
+			defer stream.Close()
+		}
+
+		if args.Length >= 0 {
+			// read the first N bytes
+			if n, err := io.CopyN(buf, stream, args.Length); err == nil {
+				response.Length = n
+			} else {
+				return nil, err
+			}
+		} else {
+			// read ALL THE BYTES
+			if n, err := io.Copy(buf, stream); err == nil {
+				response.Length = n
+			} else {
+				return nil, err
+			}
+		}
+
+		// whatever is in the buffer, that's what you get.
+		response.Data = buf
+
+		return response, nil
+	} else {
+		return nil, err
+	}
+
 }
 
 type WriteArgs struct {
-	// The data to write as a stream.
+	// The data to write to the destination.
 	Data io.Reader `json:"data"`
 
 	// The data to write as a discrete value.
@@ -64,36 +111,70 @@ type WriteArgs struct {
 	Autoclose bool `json:"autoclose" default:"true"`
 }
 
-func (self *Commands) Write(destination interface{}, args *WriteArgs) error {
-	var writer io.Writer
+type WriteResponse struct {
+	// The filesystem path that the data was written to.
+	Path string `json:"path,omitempty"`
 
+	// The size of the data (in bytes).
+	Size int64 `json:"size,omitempty"`
+}
+
+// Write a value or a stream of data to a file at the given path.  The destination path can be a local
+// filesystem path, a URI that uses a custom scheme registered outside of the application, or the string
+// "temporary", which will write to a temporary file whose path will be returned in the response.
+func (self *Commands) Write(destination interface{}, args *WriteArgs) (*WriteResponse, error) {
 	if args == nil {
-		args = &WriteArgs{}
+		args = new(WriteArgs)
 	}
 
 	defaults.SetDefaults(args)
 
-	if f, ok := destination.(io.Writer); ok {
-		writer = f
-	} else if filename, ok := destination.(string); ok {
-		if file, err := os.Open(filename); err == nil {
-			writer = file
-			destination = file
+	var response = new(WriteResponse)
+	var writer io.Writer
+
+	if destination != nil {
+		if filename, ok := destination.(string); ok {
+			if newPath, w, err := self.env.GetWriterForPath(filename); err == nil {
+				writer = w
+				response.Path = newPath
+			} else {
+				return nil, err
+			}
+
+			if writer == nil {
+				if filename == `temporary` {
+					if temp, err := ioutil.TempFile(``, ``); err == nil {
+						writer = temp
+						response.Path = temp.Name()
+					} else {
+						return nil, err
+					}
+				} else if file, err := os.Create(filename); err == nil {
+					writer = file
+					response.Path = filename
+				} else {
+					return nil, err
+				}
+			}
+		} else if w, ok := destination.(io.Writer); ok {
+			writer = w
 		} else {
-			return err
+			return nil, fmt.Errorf("Unsupported destination %T; expected string or io.Writer", destination)
 		}
-	} else {
-		return fmt.Errorf("Must specify a filename string or writable stream as a destination")
+	}
+
+	if writer == nil {
+		return response, fmt.Errorf("A destination must be specified")
 	}
 
 	if writer != nil {
 		var err error
 
 		if args.Data != nil {
-			_, err = io.Copy(writer, args.Data)
+			response.Size, err = io.Copy(writer, args.Data)
 		} else if args.Value != nil {
 			source := bytes.NewBufferString(fmt.Sprintf("%v", args.Value))
-			_, err = io.Copy(writer, source)
+			response.Size, err = io.Copy(writer, source)
 		} else {
 			err = fmt.Errorf("Must specify source data or a discrete value to write")
 		}
@@ -102,51 +183,16 @@ func (self *Commands) Write(destination interface{}, args *WriteArgs) error {
 		if err == nil {
 			// if we're supposed to autoclose the destination, give that a shot now
 			if args.Autoclose {
-				if closer, ok := destination.(io.Closer); ok {
-					return closer.Close()
+				if closer, ok := writer.(io.Closer); ok {
+					return response, closer.Close()
 				}
 			}
 		} else {
-			return err
+			return response, err
 		}
 	} else {
-		return fmt.Errorf("Unable to write to destination")
+		return response, fmt.Errorf("Unable to write to destination")
 	}
 
-	return nil
-}
-
-func (self *Commands) Read(source interface{}) (string, error) {
-	var reader io.Reader
-
-	if f, ok := source.(io.Reader); ok {
-		reader = f
-
-	} else if filename, ok := source.(string); ok {
-		if file, err := os.Open(filename); err == nil {
-			reader = file
-			source = file
-		} else {
-			return ``, err
-		}
-	} else {
-		return ``, fmt.Errorf("Must specify a filename string or readable stream as a source")
-	}
-
-	// autoclose the source if it's closable
-	if closer, ok := source.(io.Closer); ok {
-		defer closer.Close()
-	}
-
-	if reader != nil {
-		data, err := ioutil.ReadAll(reader)
-
-		if err == nil {
-			return string(data), nil
-		} else {
-			return ``, err
-		}
-	} else {
-		return ``, fmt.Errorf("Unable to read from source")
-	}
+	return response, nil
 }

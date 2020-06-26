@@ -15,7 +15,7 @@ type CoreCommands struct {
 
 func NewCoreCommands(env *friendscript.Environment) *CoreCommands {
 	cmd := &CoreCommands{
-		Commands: core.New(env, env),
+		Commands: core.New(env),
 	}
 
 	cmd.SetInstance(cmd)

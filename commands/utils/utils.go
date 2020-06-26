@@ -7,12 +7,12 @@ import (
 
 type Commands struct {
 	utils.Module
-	scopeable utils.Scopeable
+	env utils.Runtime
 }
 
-func New(scopeable utils.Scopeable) *Commands {
+func New(env utils.Runtime) *Commands {
 	cmd := &Commands{
-		scopeable: scopeable,
+		env: env,
 	}
 
 	cmd.Module = utils.NewDefaultExecutor(cmd)
