@@ -21,6 +21,7 @@ import (
 	cmdfmt "github.com/ghetzel/friendscript/commands/fmt"
 	cmdhttp "github.com/ghetzel/friendscript/commands/http"
 	cmdparse "github.com/ghetzel/friendscript/commands/parse"
+	cmdurl "github.com/ghetzel/friendscript/commands/url"
 	cmdutils "github.com/ghetzel/friendscript/commands/utils"
 	cmdvars "github.com/ghetzel/friendscript/commands/vars"
 	"github.com/ghetzel/friendscript/scripting"
@@ -80,6 +81,7 @@ func NewEnvironment(data ...map[string]interface{}) *Environment {
 	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
 	environment.RegisterModule(`http`, cmdhttp.New(environment))
 	environment.RegisterModule(`parse`, cmdparse.New(environment))
+	environment.RegisterModule(`url`, cmdurl.New(environment))
 	environment.RegisterModule(`utils`, cmdutils.New(environment))
 	environment.RegisterModule(`vars`, cmdvars.New(environment))
 
