@@ -18,6 +18,19 @@ type Commands struct {
 	env utils.Runtime
 }
 
+type AssertArgs struct {
+	Message string `json:"message"`
+	snippet string
+}
+
+func (self *AssertArgs) Error() string {
+	if self.snippet != `` {
+		return fmt.Sprintf("%s: %s", self.snippet, self.Message)
+	} else {
+		return self.Message
+	}
+}
+
 func New(env utils.Runtime) *Commands {
 	var cmd = &Commands{
 		env: env,
@@ -27,143 +40,156 @@ func New(env utils.Runtime) *Commands {
 	return cmd
 }
 
-func (self *Commands) contextualError(msg string) error {
-	if ctx := self.env.Scope().EvalContext(); ctx != nil {
-		if snip := ctx.Snippet(); snip != `` {
-			return fmt.Errorf("%s: %s", snip, msg)
+func (self *Commands) contextualError(defaultMsg string, args *AssertArgs) error {
+	if args == nil {
+		args = new(AssertArgs)
+	}
+
+	defaults.SetDefaults(args)
+
+	if args.Message == `` {
+		args.Message = defaultMsg
+	}
+
+	if self.env != nil {
+		if ctx := self.env.Scope().EvalContext(); ctx != nil {
+			if snip := ctx.Snippet(); snip != `` {
+				args.snippet = snip
+			}
 		}
 	}
 
-	return fmt.Errorf(msg)
+	return args
 }
 
 // Return an error if the given value is null or zero-length.
-func (self *Commands) Exists(value interface{}) error {
+func (self *Commands) Exists(value interface{}, args *AssertArgs) error {
 	if typeutil.V(value).String() != `` {
 		return nil
 	} else {
-		return self.contextualError("Expected non-empty value")
+		return self.contextualError("Expected non-empty value", args)
 	}
 }
 
 // Return an error if the given value not empty.
-func (self *Commands) Empty(value interface{}) error {
+func (self *Commands) Empty(value interface{}, args *AssertArgs) error {
 	if typeutil.IsEmpty(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected empty value")
+		return self.contextualError("Expected empty value", args)
 	}
 }
 
 // Return an error if the given value is not null.
-func (self *Commands) Null(value interface{}) error {
+func (self *Commands) Null(value interface{}, args *AssertArgs) error {
 	if value == nil {
 		return nil
 	} else {
-		return self.contextualError("Expected null value")
+		return self.contextualError("Expected null value", args)
 	}
 }
 
 // Return an error if the given value is null.
-func (self *Commands) NotNull(value interface{}) error {
+func (self *Commands) NotNull(value interface{}, args *AssertArgs) error {
 	if value != nil {
 		return nil
 	} else {
-		return self.contextualError("Expected non-null value")
+		return self.contextualError("Expected non-null value", args)
 	}
 }
 
 // Return an error if the given value is not true.
-func (self *Commands) True(value interface{}) error {
+func (self *Commands) True(value interface{}, args *AssertArgs) error {
 	if stringutil.IsBooleanTrue(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected true value")
+		return self.contextualError("Expected true value", args)
 	}
 }
 
 // Return an error if the given value is not false.
-func (self *Commands) False(value interface{}) error {
+func (self *Commands) False(value interface{}, args *AssertArgs) error {
 	if stringutil.IsBooleanFalse(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected false value")
+		return self.contextualError("Expected false value", args)
 	}
 }
 
 // Return an error if the given value is not a numeric value.
-func (self *Commands) IsNumeric(value interface{}) error {
+func (self *Commands) IsNumeric(value interface{}, args *AssertArgs) error {
 	if typeutil.IsKindOfInteger(value) || typeutil.IsKindOfFloat(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected numeric value")
+		return self.contextualError("Expected numeric value", args)
 	}
 }
 
 // Return an error if the given value is not a boolean value.
-func (self *Commands) IsBoolean(value interface{}) error {
+func (self *Commands) IsBoolean(value interface{}, args *AssertArgs) error {
 	if typeutil.IsKindOfBool(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected boolean value")
+		return self.contextualError("Expected boolean value", args)
 	}
 }
 
 // Return an error if the given value is not a string.
-func (self *Commands) IsString(value interface{}) error {
+func (self *Commands) IsString(value interface{}, args *AssertArgs) error {
 	if typeutil.IsKindOfString(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected string value")
+		return self.contextualError("Expected string value", args)
 	}
 }
 
 // Return an error if the given value is not a scalar value.
-func (self *Commands) IsScalar(value interface{}) error {
+func (self *Commands) IsScalar(value interface{}, args *AssertArgs) error {
 	if typeutil.IsScalar(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected numeric value")
+		return self.contextualError("Expected numeric value", args)
 	}
 }
 
 // Return an error if the given value is not parsable as a time.
-func (self *Commands) IsTime(value interface{}) error {
+func (self *Commands) IsTime(value interface{}, args *AssertArgs) error {
 	if stringutil.IsTime(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected time value")
+		return self.contextualError("Expected time value", args)
 	}
 }
 
 // Return an error if the given value is not parsable as a duration.
-func (self *Commands) IsDuration(value interface{}) error {
+func (self *Commands) IsDuration(value interface{}, args *AssertArgs) error {
 	if _, err := timeutil.ParseDuration(fmt.Sprintf("%v", value)); err == nil {
 		return nil
 	} else {
-		return self.contextualError("Expected duration value")
+		return self.contextualError("Expected duration value", args)
 	}
 }
 
 // Return an error if the given value is not an object.
-func (self *Commands) IsObject(value interface{}) error {
+func (self *Commands) IsObject(value interface{}, args *AssertArgs) error {
 	if typeutil.IsMap(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected object")
+		return self.contextualError("Expected object", args)
 	}
 }
 
 // Return an error if the given value is not an array.
-func (self *Commands) IsArray(value interface{}) error {
+func (self *Commands) IsArray(value interface{}, args *AssertArgs) error {
 	if typeutil.IsArray(value) {
 		return nil
 	} else {
-		return self.contextualError("Expected array value")
+		return self.contextualError("Expected array value", args)
 	}
 }
 
 type BinaryComparison struct {
+	AssertArgs
 	Value interface{} `json:"value"`
 	Test  string      `json:"test"`
 }
