@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"testing"
 
 	"github.com/ghetzel/friendscript/scripting"
@@ -43,7 +42,7 @@ func (self *testRuntime) GetWriterForPath(path string) (string, io.Writer, error
 }
 
 func (self *testRuntime) Open(fileOrReader any) (io.ReadCloser, error) {
-	return ioutil.NopCloser(bytes.NewBufferString(testJsonData)), nil
+	return io.NopCloser(bytes.NewBufferString(testJsonData)), nil
 }
 
 func (self *testRuntime) RegisterPathWriter(handler utils.PathWriterFunc) {}

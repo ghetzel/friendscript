@@ -244,7 +244,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 
 			// set the body
 			if body != nil {
-				req.Body = ioutil.NopCloser(body)
+				req.Body = io.NopCloser(body)
 			}
 
 			// get headers in place
@@ -324,7 +324,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 				if response.ContentLength < 0 || response.ContentLength > 0 {
 					if decoded, err := httputil.DecodeResponse(response); err == nil {
 						if reqargs.RawBody {
-							res.Body = ioutil.NopCloser(decoded)
+							res.Body = io.NopCloser(decoded)
 							res.Length = 0
 						} else {
 							if response.Body != nil {

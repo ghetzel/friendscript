@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/ghetzel/friendscript/utils"
@@ -68,9 +67,9 @@ func (self *Environment) Open(fileOrReader any) (io.ReadCloser, error) {
 	var rc io.ReadCloser
 
 	if b, ok := fileOrReader.([]byte); ok {
-		rc = ioutil.NopCloser(bytes.NewBuffer(b))
+		rc = io.NopCloser(bytes.NewBuffer(b))
 	} else if i, ok := fileOrReader.([]any); ok {
-		rc = ioutil.NopCloser(bytes.NewBuffer(
+		rc = io.NopCloser(bytes.NewBuffer(
 			typeutil.Bytes(i),
 		))
 	} else if filename, ok := fileOrReader.(string); ok {
@@ -80,7 +79,7 @@ func (self *Environment) Open(fileOrReader any) (io.ReadCloser, error) {
 			return nil, err
 		}
 	} else if r, ok := fileOrReader.(io.Reader); ok {
-		rc = ioutil.NopCloser(r)
+		rc = io.NopCloser(r)
 	} else {
 		return nil, fmt.Errorf("argument must be a string or stream, got: %T", fileOrReader)
 	}

@@ -208,3 +208,13 @@ func (self *Commands) Write(destination any, args *WriteArgs) (*WriteResponse, e
 
 	return response, nil
 }
+
+// Return whether the given file exists or not
+func (self *Commands) Exists(fileOrReader any) (bool, error) {
+	if stream, err := self.env.Open(fileOrReader); err == nil {
+		defer stream.Close()
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
