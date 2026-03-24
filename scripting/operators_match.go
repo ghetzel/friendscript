@@ -33,7 +33,7 @@ func parseMatchComparator(node *node32) (MatchOperator, error) {
 	}
 }
 
-func (self MatchOperator) Evaluate(pattern *regexp.Regexp, want interface{}) bool {
+func (self MatchOperator) Evaluate(pattern *regexp.Regexp, want any) bool {
 	if v, err := exprToValue(want); err == nil {
 		want = v
 	} else {

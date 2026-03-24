@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -59,7 +60,7 @@ type Environment struct {
 }
 
 // Create a new scripting environment.
-func NewEnvironment(data ...map[string]interface{}) *Environment {
+func NewEnvironment(data ...map[string]any) *Environment {
 	environment := &Environment{
 		Name:           DefaultEnvironmentName,
 		modules:        make(map[string]Module),
@@ -173,9 +174,7 @@ func (self *Environment) Commands() []string {
 func (self *Environment) Modules() map[string]Module {
 	modules := make(map[string]Module)
 
-	for name, module := range self.modules {
-		modules[name] = module
-	}
+	maps.Copy(modules, self.modules)
 
 	return modules
 }
@@ -286,7 +285,7 @@ func (self *Environment) Evaluate(script *scripting.Friendscript, scope ...*scri
 	return self.Scope(), nil
 }
 
-func (self *Environment) Run(scriptName string, options *utils.RunOptions) (interface{}, error) {
+func (self *Environment) Run(scriptName string, options *utils.RunOptions) (any, error) {
 	var fsp = os.Getenv(`FRIENDSCRIPT_PATH`)
 	var searchPaths = sliceutil.CompactString(strings.Split(fsp, `:`))
 
@@ -439,15 +438,15 @@ func (self *Environment) Scope() *scripting.Scope {
 	}
 }
 
-func (self *Environment) Set(key string, value interface{}) {
+func (self *Environment) Set(key string, value any) {
 	self.Scope().Set(key, value)
 }
 
-func (self *Environment) Get(key string, fallback ...interface{}) interface{} {
+func (self *Environment) Get(key string, fallback ...any) any {
 	return self.Scope().Get(key, fallback...)
 }
 
-func (self *Environment) SetData(data map[string]interface{}) {
+func (self *Environment) SetData(data map[string]any) {
 	for k, v := range data {
 		self.Set(k, v)
 	}
@@ -773,12 +772,12 @@ LoopEval:
 			iterVector := loopScope.Get(sourceVar)
 
 			if typeutil.IsMap(iterVector) {
-				remap := make([][]interface{}, 0)
+				remap := make([][]any, 0)
 				keys := maputil.StringKeys(iterVector)
 				sort.Strings(keys)
 
 				for _, key := range keys {
-					remap = append(remap, []interface{}{
+					remap = append(remap, []any{
 						key,
 						maputil.Get(iterVector, key),
 					})

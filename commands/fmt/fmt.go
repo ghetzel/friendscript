@@ -28,7 +28,7 @@ func New(env utils.Runtime) *Commands {
 }
 
 // Takes an input value and returns that value as the most appropriate data type based on its contents.
-func (self *Commands) Autotype(input interface{}) (interface{}, error) {
+func (self *Commands) Autotype(input any) (any, error) {
 	return typeutil.V(input).Auto(), nil
 }
 
@@ -37,7 +37,7 @@ type JoinArgs struct {
 }
 
 // Join an array of inputs into a single string, with each item separated by a given joiner string.
-func (self *Commands) Join(inputs interface{}, args *JoinArgs) (string, error) {
+func (self *Commands) Join(inputs any, args *JoinArgs) (string, error) {
 	if args == nil {
 		args = &JoinArgs{}
 	}
@@ -48,7 +48,7 @@ func (self *Commands) Join(inputs interface{}, args *JoinArgs) (string, error) {
 }
 
 // Return the given string converted to camelCase.
-func (self *Commands) Camelize(input interface{}) (string, error) {
+func (self *Commands) Camelize(input any) (string, error) {
 	out := stringutil.Camelize(typeutil.V(input).String())
 
 	if len(out) > 0 {
@@ -64,7 +64,7 @@ func (self *Commands) Camelize(input interface{}) (string, error) {
 }
 
 // Return the given string converted to PascalCase.
-func (self *Commands) Pascalize(input interface{}) (string, error) {
+func (self *Commands) Pascalize(input any) (string, error) {
 	out := stringutil.Camelize(typeutil.V(input).String())
 	out = strings.Title(out)
 
@@ -72,19 +72,19 @@ func (self *Commands) Pascalize(input interface{}) (string, error) {
 }
 
 // Return the given string converted to lowercase.
-func (self *Commands) Lower(input interface{}) (string, error) {
+func (self *Commands) Lower(input any) (string, error) {
 	return strings.ToLower(typeutil.V(input).String()), nil
 }
 
 type ReplaceArgs struct {
-	Find    interface{} `json:"find"`
-	Replace string      `json:"replace"`
-	Count   int         `json:"count" default:"-1"`
+	Find    any    `json:"find"`
+	Replace string `json:"replace"`
+	Count   int    `json:"count" default:"-1"`
 }
 
 // Replaces values in an input string (exact matches or regular expressions) with a replacement value.
 // Exact matches will be replaced up to a certain number of times, or all occurrences of count is -1 (default).
-func (self *Commands) Replace(input interface{}, args *ReplaceArgs) (string, error) {
+func (self *Commands) Replace(input any, args *ReplaceArgs) (string, error) {
 	if args == nil {
 		args = &ReplaceArgs{}
 	}
@@ -119,7 +119,7 @@ type SplitArgs struct {
 }
 
 // Split a given string by a given delimiter.
-func (self *Commands) Split(input interface{}, args *SplitArgs) ([]string, error) {
+func (self *Commands) Split(input any, args *SplitArgs) ([]string, error) {
 	if args == nil {
 		args = &SplitArgs{}
 	}
@@ -133,27 +133,27 @@ func (self *Commands) Split(input interface{}, args *SplitArgs) ([]string, error
 }
 
 // Strip leading and trailing whitespace from the given string.
-func (self *Commands) Strip(input interface{}) (string, error) {
+func (self *Commands) Strip(input any) (string, error) {
 	return strings.TrimSpace(typeutil.V(input).String()), nil
 }
 
 // Return the given string converted to Title Case.
-func (self *Commands) Title(input interface{}) (string, error) {
+func (self *Commands) Title(input any) (string, error) {
 	return strings.Title(typeutil.V(input).String()), nil
 }
 
 // Return the given string converted to underscore_case.
-func (self *Commands) Underscore(input interface{}) (string, error) {
+func (self *Commands) Underscore(input any) (string, error) {
 	return stringutil.Underscore(typeutil.V(input).String()), nil
 }
 
 // Return the given string converted to UPPERCASE.
-func (self *Commands) Upper(input interface{}) (string, error) {
+func (self *Commands) Upper(input any) (string, error) {
 	return strings.ToUpper(typeutil.V(input).String()), nil
 }
 
 // Return an array of Unicode codepoints for each character in the given string.
-func (self *Commands) Codepoints(input interface{}) ([]int, error) {
+func (self *Commands) Codepoints(input any) ([]int, error) {
 	s := typeutil.String(input)
 	runes := []rune(s)
 	out := make([]int, len(runes))
@@ -171,7 +171,7 @@ type TrimArgs struct {
 }
 
 // Remove a leading and/org trailing string value from the given string.
-func (self *Commands) Trim(input interface{}, args *TrimArgs) (string, error) {
+func (self *Commands) Trim(input any, args *TrimArgs) (string, error) {
 	if args == nil {
 		args = &TrimArgs{}
 	}
@@ -192,12 +192,12 @@ func (self *Commands) Trim(input interface{}, args *TrimArgs) (string, error) {
 }
 
 // Returns the longest common prefix among an array of input strings.
-func (self *Commands) Lcp(inputs interface{}) (string, error) {
+func (self *Commands) Lcp(inputs any) (string, error) {
 	return stringutil.LongestCommonPrefix(sliceutil.Stringify(inputs)), nil
 }
 
 type FormatArgs struct {
-	Data interface{} `json:"data"`
+	Data any `json:"data"`
 }
 
 // Format the given string according to the given pattern and values.

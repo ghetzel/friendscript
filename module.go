@@ -6,6 +6,6 @@ import (
 
 type Module = utils.Module
 
-func CreateModule(from interface{}) Module {
+func CreateModule(from any) Module {
 	return utils.NewDefaultExecutor(from)
 }

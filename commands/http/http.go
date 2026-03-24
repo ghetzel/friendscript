@@ -31,19 +31,19 @@ type Commands struct {
 
 type RequestArgs struct {
 	// The headers to send with the request.
-	Headers map[string]interface{} `json:"headers"`
+	Headers map[string]any `json:"headers"`
 
 	// Query string parameters to add to the request.
-	Params map[string]interface{} `json:"params"`
+	Params map[string]any `json:"params"`
 
 	// A map of cookie key=value pairs to include in the request.
-	Cookies map[string]interface{} `json:"cookies"`
+	Cookies map[string]any `json:"cookies"`
 
 	// The amount of time to wait for the request to complete.
 	Timeout time.Duration `json:"timeout" default:"30s"`
 
 	// The body of the request. This is processed according to what is specified in RequestType.
-	Body interface{} `json:"body"`
+	Body any `json:"body"`
 
 	// The type of data in Body, specifying how it should be encoded.  Valid values are "raw", "form", and "json"
 	RequestType string `json:"request_type,omitempty" default:"json"`
@@ -140,7 +140,7 @@ type HttpResponse struct {
 	Took int64 `json:"took"`
 
 	// Response headers sent back from the server.
-	Headers map[string]interface{} `json:"headers"`
+	Headers map[string]any `json:"headers"`
 
 	// The MIME type of the response body (if any).
 	ContentType string `json:"type"`
@@ -149,7 +149,7 @@ type HttpResponse struct {
 	Length int64 `json:"length"`
 
 	// The decoded response body (if any).
-	Body interface{} `json:"body"`
+	Body any `json:"body"`
 
 	// If the response status is considered an error, and errors aren't fatal, this will be true.
 	Error bool `json:"error"`
@@ -294,7 +294,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 				var res = &HttpResponse{
 					Status:     response.StatusCode,
 					StatusText: response.Status,
-					Headers:    make(map[string]interface{}),
+					Headers:    make(map[string]any),
 					Took:       int64(time.Since(start).Nanoseconds() / 1e6),
 				}
 
@@ -381,7 +381,7 @@ func (self *Commands) request(method string, url string, args *RequestArgs) (*Ht
 	}
 }
 
-func encodeBody(enctype string, body interface{}) (io.Reader, string, error) {
+func encodeBody(enctype string, body any) (io.Reader, string, error) {
 	var reader io.Reader
 	var contentType string = `application/octet-stream`
 
@@ -443,9 +443,9 @@ func encodeBody(enctype string, body interface{}) (io.Reader, string, error) {
 }
 
 func isErrorStatus(status int, allowed string) bool {
-	ranges := strings.Split(allowed, `,`)
+	ranges := strings.SplitSeq(allowed, `,`)
 
-	for _, rng := range ranges {
+	for rng := range ranges {
 		lowS, highS := stringutil.SplitPair(strings.TrimSpace(rng), `-`)
 		low := int(typeutil.Int(lowS))
 		high := int(typeutil.Int(highS))

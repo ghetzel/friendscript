@@ -114,7 +114,7 @@ func (self *Loop) Type() LoopType {
 func (self *Loop) UpperBound() int {
 	if self.Type() == FixedLengthLoop {
 		if lenNode := self.statement.node.firstChild(ruleLoopConditionFixedLength); lenNode != nil {
-			var nI interface{}
+			var nI any
 
 			if arg := lenNode.first(ruleInteger); arg != nil {
 				nI = self.statement.raw(arg)
@@ -194,7 +194,7 @@ func (self *Loop) Blocks() []*Block {
 	return blocks
 }
 
-func (self *Loop) IteratableParts() ([]string, interface{}) {
+func (self *Loop) IteratableParts() ([]string, any) {
 	if self.Type() == IteratorLoop {
 		if node := self.statement.node.firstChild(ruleLoopConditionIterable); node != nil {
 			lhs := node.first(ruleLoopIterableLHS)
@@ -202,7 +202,7 @@ func (self *Loop) IteratableParts() ([]string, interface{}) {
 
 			if lhs != nil && rhs != nil {
 				names := make([]string, 0)
-				var rightHand interface{}
+				var rightHand any
 
 				for _, varNode := range lhs.first().children(ruleVariable) {
 					if key, err := self.statement.resolveVariableKey(varNode); err == nil {

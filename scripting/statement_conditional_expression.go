@@ -44,7 +44,7 @@ func (self *ConditionalExpression) IsTrue() bool {
 	return false
 }
 
-func isTruthy(value interface{}) bool {
+func isTruthy(value any) bool {
 	if v, err := exprToValue(value); err == nil {
 		value = v
 	} else {

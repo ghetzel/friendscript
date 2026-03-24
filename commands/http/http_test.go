@@ -17,7 +17,7 @@ func TestPost(t *testing.T) {
 	mux.HandleFunc(`/`, func(w http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case `/json`:
-			var x map[string]interface{}
+			var x map[string]any
 
 			json.NewDecoder(req.Body).Decode(&x)
 			assert.EqualValues(`this is a test`, x[`k1`])
@@ -40,11 +40,11 @@ func TestPost(t *testing.T) {
 	var client = New(nil)
 
 	_, err := client.Post(fmt.Sprintf("%v/json", server.URL), &RequestArgs{
-		Headers: map[string]interface{}{
+		Headers: map[string]any{
 			`X-Friendscript-Testing`: 1,
 		},
 		RequestType: `json`,
-		Body: map[string]interface{}{
+		Body: map[string]any{
 			`k1`: `this is a test`,
 		},
 	})
@@ -52,7 +52,7 @@ func TestPost(t *testing.T) {
 	assert.NoError(err)
 
 	_, err = client.Get(fmt.Sprintf("%v/cookies", server.URL), &RequestArgs{
-		Cookies: map[string]interface{}{
+		Cookies: map[string]any{
 			`OneTestCookie`: `Greetings!`,
 		},
 	})
@@ -60,7 +60,7 @@ func TestPost(t *testing.T) {
 	assert.NoError(err)
 
 	assert.NoError(client.Defaults(&RequestArgs{
-		Cookies: map[string]interface{}{
+		Cookies: map[string]any{
 			`OneTestCookie`: `Greetings!`,
 		},
 	}))
@@ -74,7 +74,7 @@ func TestPost(t *testing.T) {
 func TestIsErrorStatus(t *testing.T) {
 	assert := require.New(t)
 
-	for i := 0; i < 999; i++ {
+	for i := range 999 {
 		v := isErrorStatus(i, `402-999,0-400`)
 
 		if i == 401 {

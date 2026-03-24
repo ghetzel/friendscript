@@ -31,7 +31,7 @@ func newTestCommands(env utils.Runtime) *testCommands {
 	return cmd
 }
 
-func (self *testCommands) MapArg(key string, m map[string]interface{}) error {
+func (self *testCommands) MapArg(key string, m map[string]any) error {
 	self.env.Scope().Set(strings.TrimSpace(key), m)
 	return nil
 }
@@ -40,7 +40,7 @@ func (self *testCommands) Noop() error {
 	return nil
 }
 
-func eval(script string, items ...interface{}) (map[string]interface{}, error) {
+func eval(script string, items ...any) (map[string]any, error) {
 	env := NewEnvironment()
 	env.RegisterModule(`testing`, newTestCommands(env))
 
@@ -74,7 +74,7 @@ func TestListCommands(t *testing.T) {
 func TestAssignments(t *testing.T) {
 	assert := require.New(t)
 
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		`null`: nil,
 		`a`:    1,
 		`b`:    true,
@@ -82,22 +82,22 @@ func TestAssignments(t *testing.T) {
 		`c1`:   "Test Test",
 		`c2`:   "Test {c}",
 		`d`:    3.14159,
-		`e`: []interface{}{
+		`e`: []any{
 			float64(1),
 			true,
 			"Test",
 			3.14159,
-			[]interface{}{
+			[]any{
 				float64(1),
 				true,
 				"Test",
 				3.14159,
 			},
-			map[string]interface{}{
+			map[string]any{
 				`ok`: true,
 			},
 		},
-		`f`: map[string]interface{}{
+		`f`: map[string]any{
 			`ok`: true,
 		},
 		`g`: `g`,
@@ -117,7 +117,7 @@ func TestAssignments(t *testing.T) {
 		`w`: true,
 		`x`: "Test",
 		`y`: 3.14159,
-		`z`: []interface{}{
+		`z`: []any{
 			float64(1),
 			true,
 			"Test",
@@ -132,30 +132,30 @@ func TestAssignments(t *testing.T) {
 		`cc`:     "Test",
 		`dd`:     3.14159,
 		`eeType`: `pi-3.14159`,
-		`ee0`: map[string]interface{}{
+		`ee0`: map[string]any{
 			`ok`: true,
-			`always`: map[string]interface{}{
-				`finishing`: map[string]interface{}{
+			`always`: map[string]any{
+				`finishing`: map[string]any{
 					`each_others`: `sentences`,
 				},
 			},
 			`Content-Type`: `delicatessen/bologna`,
 			`pi-3.14159`:   `yep`,
 		},
-		`ee`: map[string]interface{}{
+		`ee`: map[string]any{
 			`ok`: true,
-			`always`: map[string]interface{}{
-				`finishing`: map[string]interface{}{
+			`always`: map[string]any{
+				`finishing`: map[string]any{
 					`each_others`: `sentences`,
 				},
 			},
 		},
-		`ee1`: map[string]interface{}{
-			`finishing`: map[string]interface{}{
+		`ee1`: map[string]any{
+			`finishing`: map[string]any{
 				`each_others`: `sentences`,
 			},
 		},
-		`ee2`: map[string]interface{}{
+		`ee2`: map[string]any{
 			`each_others`: `sentences`,
 		},
 		`ee3`:  `sentences`,
@@ -164,13 +164,13 @@ func TestAssignments(t *testing.T) {
 		`ee6`:  `sentences`,
 		`ekey`: `always`,
 		`ee7`:  `sentences`,
-		`ee8`: map[string]interface{}{
+		`ee8`: map[string]any{
 			`ok`: true,
-			`always`: map[string]interface{}{
-				`finishing`: map[string]interface{}{
+			`always`: map[string]any{
+				`finishing`: map[string]any{
 					`each_others`: `sandwiches`,
-					`other`: map[string]interface{}{
-						`stuff`: map[string]interface{}{
+					`other`: map[string]any{
+						`stuff`: map[string]any{
 							`too`: true,
 						},
 					},
@@ -179,20 +179,20 @@ func TestAssignments(t *testing.T) {
 		},
 		`put_1`: `test 1`,
 		`put_2`: `test {a}`,
-		`put_3`: []interface{}{
+		`put_3`: []any{
 			float64(1),
 			float64(2),
 			float64(3),
 		},
 		`put_4`: "put test four\n\t\tput test\n\t\tput end\n\t\tend friend end",
-		`t_maparg`: map[string]interface{}{
+		`t_maparg`: map[string]any{
 			`one`:   `first`,
 			`two`:   `second`,
 			`three`: `third`,
 		},
 		`ulit1`: `\u2211`,
 		`ulit2`: "\u2211",
-		`vars_set_1`: []interface{}{
+		`vars_set_1`: []any{
 			`set1`,
 		},
 		`stringify_float`: `2.718281828459045`,
@@ -292,7 +292,7 @@ func TestAssignments(t *testing.T) {
 func TestIfScopes(t *testing.T) {
 	assert := require.New(t)
 
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		`a`:             `top_a`,
 		`b`:             `top_b`,
 		`a_if`:          `top_a`,
@@ -359,13 +359,13 @@ func TestIfScopes(t *testing.T) {
 func TestConditionals(t *testing.T) {
 	assert := require.New(t)
 
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		`ten`:            10,
 		`unset`:          nil,
 		`true`:           true,
 		`false`:          false,
 		`string`:         "string",
-		`names`:          []interface{}{"Bob", "Steve", "Fred"},
+		`names`:          []any{"Bob", "Steve", "Fred"},
 		`if_eq`:          true,
 		`if_ne`:          true,
 		`if_eq_null`:     true,
@@ -453,7 +453,7 @@ func TestConditionals(t *testing.T) {
 func TestExpressions(t *testing.T) {
 	assert := require.New(t)
 
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		`a`:     2,
 		`b`:     6,
 		`c`:     20,
@@ -502,12 +502,12 @@ func TestExpressions(t *testing.T) {
 func TestLoops(t *testing.T) {
 	assert := require.New(t)
 
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		`forevers`:        9,
-		`double_break`:    []interface{}{4, 1},
-		`double_continue`: []interface{}{8, 9},
+		`double_break`:    []any{4, 1},
+		`double_continue`: []any{8, 9},
 		`iterations`:      4,
-		`things`: []interface{}{
+		`things`: []any{
 			float64(1),
 			float64(2),
 			float64(3),
@@ -515,7 +515,7 @@ func TestLoops(t *testing.T) {
 			float64(5),
 		},
 		`topindex`: 9,
-		`map`: map[string]interface{}{
+		`map`: map[string]any{
 			`first`:  float64(1),
 			`second`: float64(2),
 			`third`:  float64(3),
@@ -616,13 +616,13 @@ func TestHttp(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc(`/json/objects`, func(w http.ResponseWriter, req *http.Request) {
-		var into map[string]interface{}
+		var into map[string]any
 
 		switch req.Method {
 		case `GET`:
 			t.Logf("Test HTTP %s: <no body>", req.Method)
 
-			httputil.RespondJSON(w, map[string]interface{}{
+			httputil.RespondJSON(w, map[string]any{
 				`get`: `got it, good`,
 			})
 		case `DELETE`:
@@ -674,7 +674,7 @@ func TestHttp(t *testing.T) {
 	assert.EqualValues(`yes`, maputil.DeepGet(actual[`post_json_object`], []string{`body`, `value`}))
 }
 
-func jsondiff(expected interface{}, actual interface{}) string {
+func jsondiff(expected any, actual any) string {
 	if expectedJ, err := json.MarshalIndent(expected, ``, `  `); err == nil {
 		if actualJ, err := json.MarshalIndent(actual, ``, `  `); err == nil {
 			differ := gojsondiff.New()

@@ -1,5 +1,4 @@
 // Suite of testing-oriented commands that will trigger errors or failures if they aren't satistifed.
-//
 package assert
 
 import (
@@ -63,7 +62,7 @@ func (self *Commands) contextualError(defaultMsg string, args *AssertArgs) error
 }
 
 // Return an error if the given value is null or zero-length.
-func (self *Commands) Exists(value interface{}, args *AssertArgs) error {
+func (self *Commands) Exists(value any, args *AssertArgs) error {
 	if typeutil.V(value).String() != `` {
 		return nil
 	} else {
@@ -72,7 +71,7 @@ func (self *Commands) Exists(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value not empty.
-func (self *Commands) Empty(value interface{}, args *AssertArgs) error {
+func (self *Commands) Empty(value any, args *AssertArgs) error {
 	if typeutil.IsEmpty(value) {
 		return nil
 	} else {
@@ -81,7 +80,7 @@ func (self *Commands) Empty(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not null.
-func (self *Commands) Null(value interface{}, args *AssertArgs) error {
+func (self *Commands) Null(value any, args *AssertArgs) error {
 	if value == nil {
 		return nil
 	} else {
@@ -90,7 +89,7 @@ func (self *Commands) Null(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is null.
-func (self *Commands) NotNull(value interface{}, args *AssertArgs) error {
+func (self *Commands) NotNull(value any, args *AssertArgs) error {
 	if value != nil {
 		return nil
 	} else {
@@ -99,7 +98,7 @@ func (self *Commands) NotNull(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not true.
-func (self *Commands) True(value interface{}, args *AssertArgs) error {
+func (self *Commands) True(value any, args *AssertArgs) error {
 	if stringutil.IsBooleanTrue(value) {
 		return nil
 	} else {
@@ -108,7 +107,7 @@ func (self *Commands) True(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not false.
-func (self *Commands) False(value interface{}, args *AssertArgs) error {
+func (self *Commands) False(value any, args *AssertArgs) error {
 	if stringutil.IsBooleanFalse(value) {
 		return nil
 	} else {
@@ -117,7 +116,7 @@ func (self *Commands) False(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not a numeric value.
-func (self *Commands) IsNumeric(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsNumeric(value any, args *AssertArgs) error {
 	if typeutil.IsKindOfInteger(value) || typeutil.IsKindOfFloat(value) {
 		return nil
 	} else {
@@ -126,7 +125,7 @@ func (self *Commands) IsNumeric(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not a boolean value.
-func (self *Commands) IsBoolean(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsBoolean(value any, args *AssertArgs) error {
 	if typeutil.IsKindOfBool(value) {
 		return nil
 	} else {
@@ -135,7 +134,7 @@ func (self *Commands) IsBoolean(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not a string.
-func (self *Commands) IsString(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsString(value any, args *AssertArgs) error {
 	if typeutil.IsKindOfString(value) {
 		return nil
 	} else {
@@ -144,7 +143,7 @@ func (self *Commands) IsString(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not a scalar value.
-func (self *Commands) IsScalar(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsScalar(value any, args *AssertArgs) error {
 	if typeutil.IsScalar(value) {
 		return nil
 	} else {
@@ -153,7 +152,7 @@ func (self *Commands) IsScalar(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not parsable as a time.
-func (self *Commands) IsTime(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsTime(value any, args *AssertArgs) error {
 	if stringutil.IsTime(value) {
 		return nil
 	} else {
@@ -162,7 +161,7 @@ func (self *Commands) IsTime(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not parsable as a duration.
-func (self *Commands) IsDuration(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsDuration(value any, args *AssertArgs) error {
 	if _, err := timeutil.ParseDuration(fmt.Sprintf("%v", value)); err == nil {
 		return nil
 	} else {
@@ -171,7 +170,7 @@ func (self *Commands) IsDuration(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not an object.
-func (self *Commands) IsObject(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsObject(value any, args *AssertArgs) error {
 	if typeutil.IsMap(value) {
 		return nil
 	} else {
@@ -180,7 +179,7 @@ func (self *Commands) IsObject(value interface{}, args *AssertArgs) error {
 }
 
 // Return an error if the given value is not an array.
-func (self *Commands) IsArray(value interface{}, args *AssertArgs) error {
+func (self *Commands) IsArray(value any, args *AssertArgs) error {
 	if typeutil.IsArray(value) {
 		return nil
 	} else {
@@ -190,8 +189,8 @@ func (self *Commands) IsArray(value interface{}, args *AssertArgs) error {
 
 type BinaryComparison struct {
 	AssertArgs
-	Value interface{} `json:"value"`
-	Test  string      `json:"test"`
+	Value any    `json:"value"`
+	Test  string `json:"test"`
 }
 
 func bc(args *BinaryComparison, op string) *BinaryComparison {
@@ -209,7 +208,7 @@ func bc(args *BinaryComparison, op string) *BinaryComparison {
 }
 
 // Return an error if the given value is not equal to the other value.
-func (self *Commands) Compare(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Compare(have any, args *BinaryComparison) error {
 	if args == nil {
 		args = &BinaryComparison{}
 	}
@@ -254,41 +253,41 @@ func (self *Commands) Compare(have interface{}, args *BinaryComparison) error {
 }
 
 // Return an error if the given value is not equal to the other value.
-func (self *Commands) Equal(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Equal(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `eq`))
 }
 
 // Return an error if the given value is equal to the other value.
-func (self *Commands) NotEqual(have interface{}, args *BinaryComparison) error {
+func (self *Commands) NotEqual(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `ne`))
 }
 
 // Return an error if the given value does not contain another value.
-func (self *Commands) Contains(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Contains(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `contains`))
 }
 
 // Return an error if the given value contains another value.
-func (self *Commands) NotContains(have interface{}, args *BinaryComparison) error {
+func (self *Commands) NotContains(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `not-contains`))
 }
 
 // Return an error if the given value is not numerically greater than the second value.
-func (self *Commands) Gt(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Gt(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `gt`))
 }
 
 // Return an error if the given value is not numerically greater than or equal to the second value.
-func (self *Commands) Gte(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Gte(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `gte`))
 }
 
 // Return an error if the given value is not numerically less than the second value.
-func (self *Commands) Lt(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Lt(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `lt`))
 }
 
 // Return an error if the given value is not numerically less than or equal to the second value.
-func (self *Commands) Lte(have interface{}, args *BinaryComparison) error {
+func (self *Commands) Lte(have any, args *BinaryComparison) error {
 	return self.Compare(have, bc(args, `lte`))
 }

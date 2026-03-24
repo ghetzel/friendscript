@@ -82,7 +82,7 @@ func (self AssignmentOperator) ShouldPreclear() bool {
 	}
 }
 
-func (self AssignmentOperator) Evaluate(lhs interface{}, rhs interface{}) (interface{}, error) {
+func (self AssignmentOperator) Evaluate(lhs any, rhs any) (any, error) {
 	if v, err := exprToValue(lhs); err == nil {
 		lhs = v
 	} else {

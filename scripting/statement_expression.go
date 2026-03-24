@@ -33,7 +33,7 @@ func (self *Expression) String() string {
 	return str
 }
 
-func (self *Expression) Value() (interface{}, error) {
+func (self *Expression) Value() (any, error) {
 	if lhs := self.node.first(ruleExpressionLHS); lhs != nil {
 		if value, err := self.resolveValue(lhs.firstChild(ruleValueYielding)); err == nil {
 			if rhs := self.node.first(ruleExpressionRHS); rhs != nil {
@@ -56,7 +56,7 @@ func (self *Expression) Value() (interface{}, error) {
 	}
 }
 
-func (self *Expression) resolveValue(node *node32) (interface{}, error) {
+func (self *Expression) resolveValue(node *node32) (any, error) {
 	// expand variables
 	if varNode := node.firstN(1, ruleVariable); varNode != nil {
 		return self.statement.resolveVariable(varNode)
@@ -68,7 +68,7 @@ func (self *Expression) resolveValue(node *node32) (interface{}, error) {
 	}
 }
 
-func exprToValue(in interface{}) (interface{}, error) {
+func exprToValue(in any) (any, error) {
 	if isEmpty(in) {
 		return nil, nil
 	} else if expr, ok := in.(*Expression); ok && expr != nil {

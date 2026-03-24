@@ -1,26 +1,61 @@
 module github.com/ghetzel/friendscript
 
 require (
-	github.com/c-bata/go-prompt v0.2.2
-	github.com/fatih/color v1.7.0
-	github.com/fatih/structs v1.0.0
+	github.com/c-bata/go-prompt v0.2.6
+	github.com/fatih/color v1.19.0
+	github.com/fatih/structs v1.1.0
 	github.com/ghetzel/go-defaults v1.2.0
-	github.com/ghetzel/go-stockutil v1.8.82
+	github.com/ghetzel/go-stockutil v1.14.0
 	github.com/ghetzel/testify v1.4.1
-	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/kyokomi/emoji v2.1.0+incompatible
-	github.com/mattn/go-runewidth v0.0.4 // indirect
-	github.com/mattn/go-tty v0.0.0-20180219170247-931426f7535a // indirect
-	github.com/mcuadros/go-defaults v1.1.0
-	github.com/mitchellh/mapstructure v1.1.2 // indirect
-	github.com/pkg/term v0.0.0-20180730021639-bffc007b7fd5 // indirect
-	github.com/sergi/go-diff v1.0.0 // indirect
-	github.com/urfave/negroni v1.0.1-0.20191011213438-f4316798d5d3 // indirect
+	github.com/kyokomi/emoji v2.2.4+incompatible
+	github.com/mcuadros/go-defaults v1.2.0
 	github.com/yudai/gojsondiff v0.0.0-20170107030110-7b1b7adf999d
-	github.com/yudai/golcs v0.0.0-20150405163532-d1c525dea8ce // indirect
-	github.com/yudai/pp v2.0.1+incompatible // indirect
-	gopkg.in/yaml.v2 v2.2.8
-	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 )
 
-go 1.13
+require (
+	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/ghetzel/uuid v0.0.0-20171129191014-dec09d789f3d // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/jbenet/go-base58 v0.0.0-20150317085156-6237cf65f3a6 // indirect
+	github.com/jdkato/prose v1.2.1 // indirect
+	github.com/jdxcode/netrc v1.0.0 // indirect
+	github.com/jlaffaye/ftp v0.2.0 // indirect
+	github.com/juliangruber/go-intersect v1.1.0 // indirect
+	github.com/kr/fs v0.1.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.21 // indirect
+	github.com/mattn/go-shellwords v1.0.12 // indirect
+	github.com/mattn/go-tty v0.0.7 // indirect
+	github.com/melbahja/goph v1.5.0 // indirect
+	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/onsi/ginkgo v1.16.4 // indirect
+	github.com/onsi/gomega v1.38.2 // indirect
+	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/sftp v1.13.10 // indirect
+	github.com/pkg/term v1.2.0-beta.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/sergi/go-diff v1.3.1 // indirect
+	github.com/urfave/negroni v1.0.1-0.20191011213438-f4316798d5d3 // indirect
+	github.com/yudai/golcs v0.0.0-20150405163532-d1c525dea8ce // indirect
+	github.com/yudai/pp v2.0.1+incompatible // indirect
+	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/term v0.41.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
+	k8s.io/client-go v0.35.3 // indirect
+)
+
+go 1.25.0

@@ -60,7 +60,7 @@ type ReadResponse struct {
 	Took time.Duration `json:"took"`
 }
 
-func (self *Commands) Read(fileOrReader interface{}, args *ReadArgs) (*ReadResponse, error) {
+func (self *Commands) Read(fileOrReader any, args *ReadArgs) (*ReadResponse, error) {
 	if args == nil {
 		args = new(ReadArgs)
 	}
@@ -111,7 +111,7 @@ type WriteArgs struct {
 	Data io.Reader `json:"data"`
 
 	// The data to write as a discrete value.
-	Value interface{} `json:"value"`
+	Value any `json:"value"`
 
 	// Whether to attempt to close the destination (if possible) after reading/writing.
 	Autoclose bool `json:"autoclose" default:"true"`
@@ -131,7 +131,7 @@ type WriteResponse struct {
 // Write a value or a stream of data to a file at the given path.  The destination path can be a local
 // filesystem path, a URI that uses a custom scheme registered outside of the application, or the string
 // "temporary", which will write to a temporary file whose path will be returned in the response.
-func (self *Commands) Write(destination interface{}, args *WriteArgs) (*WriteResponse, error) {
+func (self *Commands) Write(destination any, args *WriteArgs) (*WriteResponse, error) {
 	if args == nil {
 		args = new(WriteArgs)
 	}

@@ -10,14 +10,14 @@ type Directive struct {
 
 type emptyValue int
 
-func (self emptyValue) Resolve() interface{} {
+func (self emptyValue) Resolve() any {
 	return nil
 }
 
 type DirectiveType int
 
 type Resolvable interface {
-	Resolve() interface{}
+	Resolve() any
 }
 
 const (

@@ -1,5 +1,4 @@
 // Commands used to load and parse various formats of serialized data (JSON, YAML, etc.)
-//
 package parse
 
 import (
@@ -24,10 +23,10 @@ func New(env utils.Runtime) *Commands {
 }
 
 // Parses the given file as a JSON document and returns the resulting value.
-func (self *Commands) Json(fileOrReader interface{}) (interface{}, error) {
+func (self *Commands) Json(fileOrReader any) (any, error) {
 	if rc, err := self.env.Open(fileOrReader); err == nil {
 		defer rc.Close()
-		var out interface{}
+		var out any
 
 		if err := json.NewDecoder(rc).Decode(&out); err == nil {
 			return out, nil
@@ -40,10 +39,10 @@ func (self *Commands) Json(fileOrReader interface{}) (interface{}, error) {
 }
 
 // Parses the given file as a YAML document and returns the resulting value.
-func (self *Commands) Yaml(fileOrReader interface{}) (interface{}, error) {
+func (self *Commands) Yaml(fileOrReader any) (any, error) {
 	if rc, err := self.env.Open(fileOrReader); err == nil {
 		defer rc.Close()
-		var out interface{}
+		var out any
 
 		if err := yaml.NewDecoder(rc).Decode(&out); err == nil {
 			return out, nil

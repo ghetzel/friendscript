@@ -26,7 +26,6 @@ func NewCoreCommands(env *friendscript.Environment) *CoreCommands {
 // Exit the program with the given status code.
 //
 // This will be available within Friendscript as the "exit" command.
-//
 func (self *CoreCommands) Exit(status int) error {
 	os.Exit(status)
 	return nil
@@ -35,7 +34,6 @@ func (self *CoreCommands) Exit(status int) error {
 // Return the list of files and subdirectories in the given directory path.
 //
 // This will be available within Friendscript as the "ls" command.
-//
 func (self *CoreCommands) Ls(path string) ([]string, error) {
 	if entries, err := ioutil.ReadDir(path); err == nil {
 		paths := make([]string, 0)

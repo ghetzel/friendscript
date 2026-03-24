@@ -196,8 +196,8 @@ func (self *Statement) Loop() *Loop {
 	return nil
 }
 
-func (self *Statement) parseObject(node *node32) (map[string]interface{}, error) {
-	output := make(map[string]interface{})
+func (self *Statement) parseObject(node *node32) (map[string]any, error) {
+	output := make(map[string]any)
 
 	if node != nil {
 		if pairs := node.children(ruleKeyValuePair); len(pairs) > 0 {
@@ -220,8 +220,8 @@ func (self *Statement) parseRegex(node *node32) (*regexp.Regexp, error) {
 	if node.rule() == ruleRegularExpression {
 		rx := self.raw(node)
 
-		if strings.HasPrefix(rx, `/`) {
-			rx = strings.TrimPrefix(rx, `/`)
+		if after, ok := strings.CutPrefix(rx, `/`); ok {
+			rx = after
 			flags := ``
 
 			if i := strings.LastIndex(rx, `/`); i > 0 {
@@ -242,8 +242,8 @@ func (self *Statement) parseRegex(node *node32) (*regexp.Regexp, error) {
 	}
 }
 
-func (self *Statement) parseArray(node *node32) ([]interface{}, error) {
-	output := make([]interface{}, 0)
+func (self *Statement) parseArray(node *node32) ([]any, error) {
+	output := make([]any, 0)
 
 	if node != nil {
 		if seq := node.first(ruleExpressionSequence); seq != nil {
@@ -260,7 +260,7 @@ func (self *Statement) parseArray(node *node32) ([]interface{}, error) {
 	return output, nil
 }
 
-func (self *Statement) parseValue(node *node32) (interface{}, error) {
+func (self *Statement) parseValue(node *node32) (any, error) {
 	value := node.first(
 		ruleArray,
 		ruleObject,
@@ -364,7 +364,7 @@ func (self *Statement) resolveVariableKey(node *node32) (string, error) {
 	}
 }
 
-func (self *Statement) resolveVariable(node *node32) (interface{}, error) {
+func (self *Statement) resolveVariable(node *node32) (any, error) {
 	if key, err := self.resolveVariableKey(node); err == nil {
 		if key == `` {
 			return nil, nil

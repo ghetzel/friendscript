@@ -61,12 +61,10 @@ func (self *Command) String() string {
 	if output := self.OutputName(); output == `` {
 		return strings.Join(
 			strings.Fields(
-				fmt.Sprintf(
-					fmt.Sprintf("Command %v %v %v",
-						name,
-						f,
-						s,
-					),
+				fmt.Sprintf("Command %v %v %v",
+					name,
+					f,
+					s,
 				),
 			),
 			` `,
@@ -74,13 +72,11 @@ func (self *Command) String() string {
 	} else {
 		return strings.Join(
 			strings.Fields(
-				fmt.Sprintf(
-					fmt.Sprintf("Command %v %v %v -> $%v",
-						name,
-						f,
-						s,
-						output,
-					),
+				fmt.Sprintf("Command %v %v %v -> $%v",
+					name,
+					f,
+					s,
+					output,
 				),
 			),
 			` `,
@@ -108,7 +104,7 @@ func (self *Command) Name() (string, string) {
 // Return the first and (optional) second arguments to a command.  If the first argument is nil, but the second
 // argument is not, then the second argument will be returned as first, and the second argument will return as
 // nil.  In this way, nil first arguments are collapsed and omitted.
-func (self *Command) Args() (first interface{}, second map[string]interface{}, argerr error) {
+func (self *Command) Args() (first any, second map[string]any, argerr error) {
 	if firstNode := self.node.first(ruleCommandFirstArg); firstNode != nil {
 		if variable := firstNode.firstChild(); variable != nil && variable.rule() == ruleVariable {
 			if v, err := self.statement.resolveVariable(variable); err == nil {

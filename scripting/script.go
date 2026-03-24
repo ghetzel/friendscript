@@ -22,7 +22,7 @@ var errContextLinesBefore = 3
 var errContextLinesAfter = 3
 
 type mappable interface {
-	ToMap() map[string]interface{}
+	ToMap() map[string]any
 }
 
 //go:generate peg -inline friendscript.peg
@@ -102,25 +102,22 @@ func (self *Friendscript) errorWithContext(err error) error {
 		lines := strings.Split(self.Buffer, "\n")
 		lbound := int(mathutil.ClampLower(float64(line-errContextLinesBefore), 0))
 		ubound := int(mathutil.ClampUpper(float64(line+errContextLinesAfter), float64(len(lines))))
-		message := fmt.Sprintf("Syntax error on line %d: %v\n", line, match.Group(`message`))
-		message += "\n"
+		var message strings.Builder
+		message.WriteString(fmt.Sprintf("Syntax error on line %d: %v\n", line, match.Group(`message`)))
+		message.WriteString("\n")
 		lcp := stringutil.LongestCommonPrefix(lines)
 
 		for i := lbound; i < ubound; i++ {
-			message += fmt.Sprintf("%- 4d | %v\n", i, strings.TrimPrefix(lines[i], lcp))
+			message.WriteString(fmt.Sprintf("%- 4d | %v\n", i, strings.TrimPrefix(lines[i], lcp)))
 
 			if i == (line - 1) {
-				sl := (symbol - 1)
+				sl := max((symbol - 1), 0)
 
-				if sl < 0 {
-					sl = 0
-				}
-
-				message += fmt.Sprintf("     | %s^\n", strings.Repeat(`-`, sl))
+				message.WriteString(fmt.Sprintf("     | %s^\n", strings.Repeat(`-`, sl)))
 			}
 		}
 
-		return errors.New(message)
+		return errors.New(message.String())
 	} else {
 		return err
 	}
@@ -296,7 +293,7 @@ func debugNode(friendscript *Friendscript, node *node32) {
 }
 
 // return int or int64 when appropriate
-func intIfYouCan(in interface{}) interface{} {
+func intIfYouCan(in any) any {
 	if oF, ok := in.(float64); ok {
 		if oF == float64(int(oF)) {
 			return int(oF)
@@ -310,7 +307,7 @@ func intIfYouCan(in interface{}) interface{} {
 }
 
 // if the input is a struct, convert it into a map
-func mapifyStruct(in interface{}) interface{} {
+func mapifyStruct(in any) any {
 	maputil.UnmarshalStructTag = `json`
 
 	if m, ok := in.(mappable); ok {
@@ -319,10 +316,10 @@ func mapifyStruct(in interface{}) interface{} {
 	} else if b, ok := in.([]byte); ok {
 		return b
 	} else if typeutil.IsArray(in) {
-		var elems = make([]interface{}, sliceutil.Len(in))
+		var elems = make([]any, sliceutil.Len(in))
 
 		// work a little to get structs/mappable objects turned into maps
-		sliceutil.Each(in, func(i int, elem interface{}) error {
+		sliceutil.Each(in, func(i int, elem any) error {
 			elems[i] = mapifyStruct(elem)
 			return nil
 		})

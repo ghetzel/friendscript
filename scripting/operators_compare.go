@@ -56,7 +56,7 @@ func parseComparator(node *node32) (Comparator, error) {
 }
 
 func (self Comparator) Evaluate(lhs *Expression, rhs *Expression) bool {
-	var lvv, rvv interface{}
+	var lvv, rvv any
 	var lv, rv float64
 	var lverr error
 	var rverr error
@@ -143,11 +143,11 @@ func (self Comparator) Evaluate(lhs *Expression, rhs *Expression) bool {
 	}
 }
 
-func membershipTest(i int, first interface{}, second interface{}) bool {
+func membershipTest(i int, first any, second any) bool {
 	return fmt.Sprintf("%v", first) == fmt.Sprintf("%v", second)
 }
 
-func isMemberOf(lhs interface{}, rhs interface{}) bool {
+func isMemberOf(lhs any, rhs any) bool {
 	if typeutil.IsArray(rhs) {
 		// log.Debugf("is %v in %v", lhs, rhs)
 		return sliceutil.Contains(rhs, lhs, membershipTest)

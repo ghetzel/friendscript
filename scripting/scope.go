@@ -26,7 +26,7 @@ type tracer int
 
 type Scope struct {
 	parent         *Scope
-	data           map[string]interface{}
+	data           map[string]any
 	isolatedReads  bool
 	isolatedWrites bool
 	mostRecentKey  string
@@ -37,7 +37,7 @@ type Scope struct {
 func NewScope(parent *Scope) *Scope {
 	return &Scope{
 		parent: parent,
-		data:   make(map[string]interface{}),
+		data:   make(map[string]any),
 	}
 }
 
@@ -63,7 +63,7 @@ func (self *Scope) Level() int {
 	}
 }
 
-func (self *Scope) MostRecentValue() interface{} {
+func (self *Scope) MostRecentValue() any {
 	if self.mostRecentKey == `` {
 		return nil
 	}
@@ -102,10 +102,10 @@ func (self *Scope) String() string {
 	}
 }
 
-func (self *Scope) Data() map[string]interface{} {
-	var output = make(map[string]interface{})
+func (self *Scope) Data() map[string]any {
+	var output = make(map[string]any)
 
-	maputil.Walk(self.data, func(value interface{}, path []string, isLeaf bool) error {
+	maputil.Walk(self.data, func(value any, path []string, isLeaf bool) error {
 		if resolvable, ok := value.(Resolvable); ok {
 			maputil.DeepSet(output, path, resolvable.Resolve())
 		} else if typeutil.IsArray(value) {
@@ -133,14 +133,14 @@ func (self *Scope) Declare(key string) {
 	maputil.DeepSet(self.data, strings.Split(key, `.`), e)
 }
 
-func (self *Scope) Set(key string, value interface{}) {
+func (self *Scope) Set(key string, value any) {
 	key = self.prepVariableName(key)
 	scope := self.OwnerOf(key)
 	scope.set(key, value)
 	self.mostRecentKey = key
 }
 
-func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
+func (self *Scope) Get(key string, fallback ...any) any {
 	value, _ := self.get(key, fallback...)
 
 	// the emptyValue type is used by the "declare" statement to put a non-nil placeholder
@@ -159,7 +159,6 @@ func (self *Scope) Get(key string, fallback ...interface{}) interface{} {
 //
 // If none of the ancestor scopes have a non-nil value at the given key, the current
 // scope becomes the owner of the key and will be returned.
-//
 func (self *Scope) OwnerOf(key string) *Scope {
 	if self.isolatedWrites || self.IsLocal(key) {
 		return self
@@ -177,7 +176,7 @@ func (self *Scope) IsLocal(key string) bool {
 	return true
 }
 
-func (self *Scope) set(key string, value interface{}) {
+func (self *Scope) set(key string, value any) {
 	if key == `` || key == placeholderVarName {
 		return
 	}
@@ -204,7 +203,7 @@ func (self *Scope) set(key string, value interface{}) {
 	maputil.DeepSet(self.data, strings.Split(key, `.`), value)
 }
 
-func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope) {
+func (self *Scope) get(key string, fallback ...any) (any, *Scope) {
 	key = self.prepVariableName(key)
 
 	v := maputil.DeepGet(self.data, strings.Split(key, `.`))
@@ -237,7 +236,7 @@ func (self *Scope) get(key string, fallback ...interface{}) (interface{}, *Scope
 }
 
 func (self *Scope) Interpolate(in string) string {
-	for i := 0; i < maxInterpolateSequences; i++ {
+	for range maxInterpolateSequences {
 		if match := rxutil.Match(rxInterpolate, in); match != nil {
 			seq := match.Group(1)
 			seq = stringutil.Unwrap(seq, `{`, `}`)
@@ -263,7 +262,7 @@ func (self *Scope) prepVariableName(key string) string {
 	return key
 }
 
-func isEmpty(in interface{}) bool {
+func isEmpty(in any) bool {
 	if in == nil {
 		return true
 	} else if _, ok := in.(*emptyValue); ok {

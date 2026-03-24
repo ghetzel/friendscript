@@ -26,15 +26,15 @@ type Commands struct {
 }
 
 type URL struct {
-	Scheme   string                 `json:"scheme"`
-	Host     string                 `json:"host"`
-	Domain   string                 `json:"domain"`
-	Port     int                    `json:"port"`
-	Path     string                 `json:"path"`
-	RawQuery string                 `json:"rawquery"`
-	Fragment string                 `json:"fragment"`
-	Query    map[string]interface{} `json:"query"`
-	Full     string                 `json:"full"`
+	Scheme   string         `json:"scheme"`
+	Host     string         `json:"host"`
+	Domain   string         `json:"domain"`
+	Port     int            `json:"port"`
+	Path     string         `json:"path"`
+	RawQuery string         `json:"rawquery"`
+	Fragment string         `json:"fragment"`
+	Query    map[string]any `json:"query"`
+	Full     string         `json:"full"`
 	url      *url.URL
 }
 
@@ -142,9 +142,9 @@ func New(env utils.Runtime) *Commands {
 }
 
 // Parse the given URL string or structure, and return a structured representation of the various parts of a URL.
-func (self *Commands) Parse(u interface{}) (*URL, error) {
+func (self *Commands) Parse(u any) (*URL, error) {
 	var parsed = &URL{
-		Query: make(map[string]interface{}),
+		Query: make(map[string]any),
 	}
 
 	if v, ok := u.(*URL); ok {
@@ -184,8 +184,8 @@ func (self *Commands) Parse(u interface{}) (*URL, error) {
 // Take a map or previous URL response structure and encode the values into a string
 // that can be used in another URL or form post data.  This command does not automaticlly
 // prepend a "?" character to the output.
-func (self *Commands) EncodeQuery(querymap interface{}) (string, error) {
-	var qmap map[string]interface{}
+func (self *Commands) EncodeQuery(querymap any) (string, error) {
+	var qmap map[string]any
 	var qvals = make(url.Values)
 
 	if u, ok := querymap.(*URL); ok {
@@ -212,15 +212,15 @@ func (self *Commands) EncodeQuery(querymap interface{}) (string, error) {
 }
 
 // Take a URL or map of query string key=value pairs and return a map of values.
-func (self *Commands) ParseQuery(urlOrQueryString interface{}) (map[string]interface{}, error) {
+func (self *Commands) ParseQuery(urlOrQueryString any) (map[string]any, error) {
 
 	if u, ok := urlOrQueryString.(*URL); ok {
 		return u.Query, nil
 	} else if typeutil.IsMap(urlOrQueryString) {
 		return typeutil.MapNative(urlOrQueryString), nil
 	} else if s, ok := urlOrQueryString.(string); ok {
-		if strings.HasPrefix(s, `?`) {
-			s = strings.TrimPrefix(s, `?`)
+		if after, ok0 := strings.CutPrefix(s, `?`); ok0 {
+			s = after
 
 			return urlValuesToMap(s)
 
@@ -235,7 +235,7 @@ func (self *Commands) ParseQuery(urlOrQueryString interface{}) (map[string]inter
 }
 
 // Escapes the string so it can be safely placed inside a URL path segment, replacing special characters (including /) with %XX sequences as needed.
-func (self *Commands) Escape(stringOrStruct interface{}) (string, error) {
+func (self *Commands) Escape(stringOrStruct any) (string, error) {
 	if u, err := self.Parse(stringOrStruct); err == nil {
 		return url.PathEscape(u.Path), nil
 	} else {
@@ -243,7 +243,7 @@ func (self *Commands) Escape(stringOrStruct interface{}) (string, error) {
 	}
 }
 
-func (self *Commands) Unescape(stringOrStruct interface{}) (string, error) {
+func (self *Commands) Unescape(stringOrStruct any) (string, error) {
 	if u, err := self.Parse(stringOrStruct); err == nil {
 		return url.PathUnescape(u.Path)
 	} else {
@@ -251,9 +251,9 @@ func (self *Commands) Unescape(stringOrStruct interface{}) (string, error) {
 	}
 }
 
-func urlValuesToMap(rawquery string) (map[string]interface{}, error) {
+func urlValuesToMap(rawquery string) (map[string]any, error) {
 	if vals, err := url.ParseQuery(rawquery); err == nil {
-		var out = make(map[string]interface{})
+		var out = make(map[string]any)
 
 		for k, vv := range vals {
 			switch len(vv) {

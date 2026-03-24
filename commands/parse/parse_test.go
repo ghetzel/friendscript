@@ -30,7 +30,7 @@ func (self *testRuntime) Scope() *scripting.Scope {
 	return nil
 }
 
-func (self *testRuntime) Run(scriptName string, options *utils.RunOptions) (interface{}, error) {
+func (self *testRuntime) Run(scriptName string, options *utils.RunOptions) (any, error) {
 	return nil, fmt.Errorf("NOT IMPLEMENTED")
 }
 
@@ -42,7 +42,7 @@ func (self *testRuntime) GetWriterForPath(path string) (string, io.Writer, error
 	return ``, nil, nil
 }
 
-func (self *testRuntime) Open(fileOrReader interface{}) (io.ReadCloser, error) {
+func (self *testRuntime) Open(fileOrReader any) (io.ReadCloser, error) {
 	return ioutil.NopCloser(bytes.NewBufferString(testJsonData)), nil
 }
 
@@ -54,8 +54,8 @@ func TestParseJson(t *testing.T) {
 
 	out, err := cmd.Json(bytes.NewBufferString(testJsonData))
 	require.NoError(t, err)
-	require.EqualValues(t, map[string]interface{}{
-		`hello`: map[string]interface{}{
+	require.EqualValues(t, map[string]any{
+		`hello`: map[string]any{
 			`there`: true,
 		},
 	}, out)
@@ -66,8 +66,8 @@ func TestParseYaml(t *testing.T) {
 
 	out, err := cmd.Yaml(bytes.NewBufferString(testYamlData))
 	require.NoError(t, err)
-	require.EqualValues(t, map[interface{}]interface{}{
-		`hello`: map[interface{}]interface{}{
+	require.EqualValues(t, map[any]any{
+		`hello`: map[any]any{
 			`there`: true,
 		},
 	}, out)

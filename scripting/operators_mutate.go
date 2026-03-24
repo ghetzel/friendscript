@@ -54,7 +54,7 @@ func parseOperator(node *node32) (operator, error) {
 	}
 }
 
-func (self operator) evaluate(lhs interface{}, rhs interface{}) (interface{}, error) {
+func (self operator) evaluate(lhs any, rhs any) (any, error) {
 	var lv float64
 	var rv float64
 	var lverr error
@@ -87,7 +87,7 @@ func (self operator) evaluate(lhs interface{}, rhs interface{}) (interface{}, er
 		}
 	}
 
-	var output interface{}
+	var output any
 	var err error
 
 	switch self {

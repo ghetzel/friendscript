@@ -83,11 +83,11 @@ func TestParseString(t *testing.T) {
 }
 
 func TestEncodeQuery(t *testing.T) {
-	var cases = map[interface{}]interface{}{
+	var cases = map[any]any{
 		`?x=1&y=true&z=three`:                    `x=1&y=true&z=three`,
 		`https://example.com?x=1&y=true&z=three`: `x=1&y=true&z=three`,
 		&URL{
-			Query: map[string]interface{}{
+			Query: map[string]any{
 				`z`: `three`,
 				`y`: true,
 				`x`: 1,
@@ -103,7 +103,7 @@ func TestEncodeQuery(t *testing.T) {
 }
 
 func TestEncodeQueryMap(t *testing.T) {
-	have, err := New(nil).EncodeQuery(map[string]interface{}{
+	have, err := New(nil).EncodeQuery(map[string]any{
 		`y`: true,
 		`x`: 1,
 		`z`: `three`,

@@ -64,12 +64,12 @@ func (self *Environment) GetReaderForPath(path string) (io.ReadCloser, error) {
 // Open a readable destination file for reading.  If fileOrReader is a string, it will be treated
 // as a path and will be sent to GetReaderForPath().  If it is an io.Reader, it will be returned
 // without reading from it.
-func (self *Environment) Open(fileOrReader interface{}) (io.ReadCloser, error) {
+func (self *Environment) Open(fileOrReader any) (io.ReadCloser, error) {
 	var rc io.ReadCloser
 
 	if b, ok := fileOrReader.([]byte); ok {
 		rc = ioutil.NopCloser(bytes.NewBuffer(b))
-	} else if i, ok := fileOrReader.([]interface{}); ok {
+	} else if i, ok := fileOrReader.([]any); ok {
 		rc = ioutil.NopCloser(bytes.NewBuffer(
 			typeutil.Bytes(i),
 		))

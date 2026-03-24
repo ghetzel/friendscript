@@ -11,7 +11,7 @@ import (
 	"github.com/ghetzel/go-stockutil/typeutil"
 )
 
-var errorInterface = reflect.TypeOf((*error)(nil)).Elem()
+var errorInterface = reflect.TypeFor[error]()
 
 func ListModuleCommands(module Module, skipNames ...string) []string {
 	commands := make([]string, 0)
@@ -38,7 +38,7 @@ func ListModuleCommands(module Module, skipNames ...string) []string {
 	return commands
 }
 
-func GetFunctionByName(from interface{}, name string) (reflect.Value, error) {
+func GetFunctionByName(from any, name string) (reflect.Value, error) {
 	var fromV reflect.Value
 
 	if fV, ok := from.(reflect.Value); ok {
@@ -58,27 +58,28 @@ func GetFunctionByName(from interface{}, name string) (reflect.Value, error) {
 // function calls happens.  This is what the function does:
 //
 // This Friendscript:
-//   http::get "https://example.com" {
-//     headers: {
-//       "User-Agent": "friendscript",
-//     },
-//   }
+//
+//	http::get "https://example.com" {
+//	  headers: {
+//	    "User-Agent": "friendscript",
+//	  },
+//	}
 //
 // ...is executed as if it were:
-//   httpModule.Get("https://example.com", &RequestArgs{
-//     Headers: map[string]interface{}{
-//       "User-Agent": "friendscript",
-//     },
-//   })
 //
-func CallCommandFunction(from interface{}, name string, first interface{}, rest map[string]interface{}) (interface{}, error) {
+//	httpModule.Get("https://example.com", &RequestArgs{
+//	  Headers: map[string]any{
+//	    "User-Agent": "friendscript",
+//	  },
+//	})
+func CallCommandFunction(from any, name string, first any, rest map[string]any) (any, error) {
 	if fn, err := GetFunctionByName(from, name); err == nil {
-		var inputs = []interface{}{first, rest}
+		var inputs = []any{first, rest}
 		var arguments = make([]reflect.Value, fn.Type().NumIn())
 
 		// loop through the arguments the target function takes, building an equally-sized list
 		// of reflect.Value instances containing the Golang value we work out using various magicks.
-		for i := 0; i < len(arguments); i++ {
+		for i := range arguments {
 			var argT = fn.Type().In(i)
 
 			// first and foremost, initialize the argument to its zero value
@@ -98,7 +99,7 @@ func CallCommandFunction(from interface{}, name string, first interface{}, rest 
 					}
 
 					// dereference pointers
-					if argT.Kind() == reflect.Ptr {
+					if argT.Kind() == reflect.Pointer {
 						argT = argT.Elem()
 					}
 

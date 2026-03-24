@@ -36,7 +36,7 @@ func New(env utils.Runtime) *Commands {
 }
 
 // Outputs a line to the log.
-func (self *Commands) Log(message interface{}) error {
+func (self *Commands) Log(message any) error {
 	if message == nil {
 		return nil
 	} else if b, ok := message.([]byte); ok {
@@ -44,7 +44,7 @@ func (self *Commands) Log(message interface{}) error {
 	} else if typeutil.IsScalar(reflect.ValueOf(message)) {
 		emoji.Printf("%v\n", message)
 	} else if data, err := json.MarshalIndent(message, ``, `  `); err == nil {
-		fmt.Printf(string(data) + "\n")
+		fmt.Println(string(data))
 	} else {
 		log.Errorf("Failed to log message: %v", err)
 		return err
@@ -55,14 +55,14 @@ func (self *Commands) Log(message interface{}) error {
 
 // Store a value in the current scope. Strings will be automatically converted
 // into the appropriate data types (float, int, bool) if possible.
-func (self *Commands) Put(value interface{}) (interface{}, error) {
+func (self *Commands) Put(value any) (any, error) {
 	return value, nil
 }
 
 type EnvArgs struct {
 	// The value to return if the environment variable does not exist, or
 	// (optionally) is empty.
-	Fallback interface{} `json:"fallback"`
+	Fallback any `json:"fallback"`
 
 	// Whether empty values should be ignored or not.
 	Required bool `json:"required" default:"false"`
@@ -92,8 +92,7 @@ type EnvArgs struct {
 // env 'USER' { required: true }
 // env 'CI'   { required: true }
 // ```
-//
-func (self *Commands) Env(name string, args *EnvArgs) (interface{}, error) {
+func (self *Commands) Env(name string, args *EnvArgs) (any, error) {
 	if args == nil {
 		args = &EnvArgs{}
 	}
@@ -101,7 +100,7 @@ func (self *Commands) Env(name string, args *EnvArgs) (interface{}, error) {
 	defaults.SetDefaults(args)
 
 	if ev := os.Getenv(name); ev != `` {
-		var rv interface{}
+		var rv any
 
 		if args.Joiner != `` {
 			rv = strings.Split(ev, args.Joiner)
@@ -142,7 +141,7 @@ type RunArgs struct {
 	ResultKey string `json:"result_key"` // result
 
 	// Provides a set of initial variables to the script.
-	Data map[string]interface{} `json:"data"` // null
+	Data map[string]any `json:"data"` // null
 
 	// If true, the scope of the running script will not be able to modify data in the parent scope.
 	Isolated bool `json:"isolated" default:"true"`
@@ -157,8 +156,7 @@ type RunArgs struct {
 //
 // Returns: The value of the variable named by result_key at the end of the
 // evaluated script's execution.
-//
-func (self *Commands) Run(filename string, args *RunArgs) (interface{}, error) {
+func (self *Commands) Run(filename string, args *RunArgs) (any, error) {
 	if self.env == nil {
 		return nil, fmt.Errorf("no environment found")
 	}
@@ -184,7 +182,7 @@ func (self *Commands) Run(filename string, args *RunArgs) (interface{}, error) {
 }
 
 // Pauses execution of the current script for the given duration.
-func (self *Commands) Wait(delay interface{}) error {
+func (self *Commands) Wait(delay any) error {
 	var duration time.Duration
 
 	if delayD, ok := delay.(time.Duration); ok {
