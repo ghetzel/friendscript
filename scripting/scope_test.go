@@ -24,12 +24,12 @@ func TestInterpolate(t *testing.T) {
 func TestIsEmpty(t *testing.T) {
 	assert := require.New(t)
 
-	assert.True(isEmpty(nil))
-	assert.True(isEmpty(new(emptyValue)))
-	assert.True(isEmpty(emptyValue(0)))
+	assert.True(IsEmpty(nil))
+	assert.True(IsEmpty(new(emptyValue)))
+	assert.True(IsEmpty(emptyValue(0)))
 
-	assert.False(isEmpty([]string{`thing`}))
-	assert.False(isEmpty(map[string]any{
+	assert.False(IsEmpty([]string{`thing`}))
+	assert.False(IsEmpty(map[string]any{
 		`a`: `thing`,
 	}))
 }

@@ -82,7 +82,7 @@ func (self Comparator) Evaluate(lhs *Expression, rhs *Expression) bool {
 
 	switch self {
 	case cmpEquality:
-		if isEmpty(lvv) && isEmpty(rvv) {
+		if IsEmpty(lvv) && IsEmpty(rvv) {
 			return true
 		} else if res, err := stringutil.RelaxedEqual(lvv, rvv); err == nil {
 			return res
@@ -91,7 +91,7 @@ func (self Comparator) Evaluate(lhs *Expression, rhs *Expression) bool {
 			return false
 		}
 	case cmpNonEquality:
-		if isEmpty(lvv) && !isEmpty(rvv) {
+		if IsEmpty(lvv) && !IsEmpty(rvv) {
 			return true
 		} else if res, err := stringutil.RelaxedEqual(lvv, rvv); err == nil {
 			return !res

@@ -131,7 +131,7 @@ func (self operator) evaluate(lhs any, rhs any) (any, error) {
 		err = fmt.Errorf("operator '%v' not implemented", self)
 	}
 
-	if isEmpty(output) {
+	if IsEmpty(output) {
 		output = new(emptyValue)
 	}
 

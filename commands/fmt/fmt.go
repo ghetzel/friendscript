@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ghetzel/friendscript/scripting"
 	"github.com/ghetzel/friendscript/utils"
 	"github.com/ghetzel/go-stockutil/sliceutil"
 	"github.com/ghetzel/go-stockutil/stringutil"
@@ -213,4 +214,77 @@ func (self *Commands) Format(pattern string, args *FormatArgs) (string, error) {
 	}
 
 	return fmt.Sprintf(pattern, sliceutil.Sliceify(args.Data)...), nil
+}
+
+type TestArgs struct {
+	HasPrefix  string `json:"prefix"`
+	HasSuffix  string `json:"suffix"`
+	Contains   string `json:"contains"`
+	IsNumeric  bool   `json:"numeric"`
+	IsInteger  bool   `json:"integer"`
+	IsFloat    bool   `json:"float"`
+	IsTime     bool   `json:"time"`
+	IsDuration bool   `json:"duration"`
+}
+
+// Return whether the given string matches the given criteria.
+func (self *Commands) Test(value any, args *TestArgs) (bool, error) {
+	if args == nil {
+		args = new(TestArgs)
+	}
+
+	defaults.SetDefaults(args)
+
+	var s = typeutil.String(value)
+
+	if t := args.HasPrefix; t != `` {
+		if !strings.HasPrefix(s, t) {
+			return false, nil
+		}
+	}
+
+	if t := args.HasSuffix; t != `` {
+		if !strings.HasSuffix(s, t) {
+			return false, nil
+		}
+	}
+
+	if t := args.Contains; t != `` {
+		if !strings.Contains(s, t) {
+			return false, nil
+		}
+	}
+
+	if args.IsNumeric && !typeutil.IsNumeric(value) {
+		return false, nil
+	}
+
+	if args.IsFloat && !typeutil.IsFloat(value) {
+		return false, nil
+	}
+
+	if args.IsInteger && !typeutil.IsInteger(value) {
+		return false, nil
+	}
+
+	if args.IsTime && !typeutil.IsTime(value) {
+		return false, nil
+	}
+
+	if args.IsDuration && !typeutil.IsDuration(value) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// Rether the given value is null or zero-length.
+func (self *Commands) IsEmpty(value any) (bool, error) {
+	if scripting.IsEmpty(value) {
+		return true, nil
+	} else if typeutil.Len(value) == 0 {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }

@@ -146,7 +146,7 @@ func (self *Scope) Get(key string, fallback ...any) any {
 	// the emptyValue type is used by the "declare" statement to put a non-nil placeholder
 	// value in a scope for the purpose of occupying they key.  When used as a value outside
 	// of this package, it should be nil.
-	if isEmpty(value) {
+	if IsEmpty(value) {
 		return nil
 	}
 
@@ -181,7 +181,7 @@ func (self *Scope) set(key string, value any) {
 		return
 	}
 
-	if isEmpty(value) {
+	if IsEmpty(value) {
 		value = new(emptyValue)
 	} else if v, err := exprToValue(value); err == nil {
 		value = v
@@ -208,7 +208,7 @@ func (self *Scope) get(key string, fallback ...any) (any, *Scope) {
 
 	v := maputil.DeepGet(self.data, strings.Split(key, `.`))
 
-	if !isEmpty(v) {
+	if !IsEmpty(v) {
 		// return *copies* of compound types
 		if typeutil.IsMap(v) {
 			v = maputil.DeepCopyStruct(v)
@@ -243,7 +243,7 @@ func (self *Scope) Interpolate(in string) string {
 
 			value := self.Get(seq)
 
-			if isEmpty(value) {
+			if IsEmpty(value) {
 				value = ``
 			}
 
@@ -262,7 +262,7 @@ func (self *Scope) prepVariableName(key string) string {
 	return key
 }
 
-func isEmpty(in any) bool {
+func IsEmpty(in any) bool {
 	if in == nil {
 		return true
 	} else if _, ok := in.(*emptyValue); ok {

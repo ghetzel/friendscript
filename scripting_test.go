@@ -609,6 +609,102 @@ func TestCommands(t *testing.T) {
 	actual, err = eval(`fmt::trim "test" -> $rv`)
 	assert.NoError(err)
 	assert.Equal(`test`, actual[`rv`])
+
+	actual, err = eval(`fmt::isEmpty null -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::isEmpty "" -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::isEmpty "test" -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::isEmpty 0 -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { contains: "ello" } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { contains: "ellno" } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { prefix: "hell" } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { prefix: "no" } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { suffix: "o" } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { suffix: "no" } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { prefix: "hell", suffix: "o" } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { prefix: "hell", suffix: "no" } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { prefix: "hell", contains: "ell", suffix: "lo" } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "hello" { prefix: "hell", contains: "sell", suffix: "no" } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "1.23" { numeric: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "1.23" { numeric: true, float: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "1.23" { numeric: true, integer: true } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "4" { numeric: true, integer: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "4" { numeric: true, float: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "55s" { duration: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "potato" { duration: true } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "2006-01-02 15:04:05" { time: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "2006-01-02" { time: true } -> $rv`)
+	assert.NoError(err)
+	assert.True(typeutil.Bool(actual[`rv`]))
+
+	actual, err = eval(`fmt::test "potato" { time: true } -> $rv`)
+	assert.NoError(err)
+	assert.False(typeutil.Bool(actual[`rv`]))
 }
 
 func TestHttp(t *testing.T) {
