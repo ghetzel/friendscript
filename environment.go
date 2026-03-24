@@ -18,6 +18,7 @@ import (
 	"github.com/fatih/color"
 	cmdassert "github.com/ghetzel/friendscript/commands/assert"
 	"github.com/ghetzel/friendscript/commands/core"
+	cmdencode "github.com/ghetzel/friendscript/commands/encode"
 	cmdfile "github.com/ghetzel/friendscript/commands/file"
 	cmdfmt "github.com/ghetzel/friendscript/commands/fmt"
 	cmdhttp "github.com/ghetzel/friendscript/commands/http"
@@ -78,6 +79,7 @@ func NewEnvironment(data ...map[string]any) *Environment {
 
 	environment.RegisterModule(scripting.UnqualifiedModuleName, core.New(environment))
 	environment.RegisterModule(`assert`, cmdassert.New(environment))
+	environment.RegisterModule(`encode`, cmdencode.New(environment))
 	environment.RegisterModule(`file`, cmdfile.New(environment))
 	environment.RegisterModule(`fmt`, cmdfmt.New(environment))
 	environment.RegisterModule(`http`, cmdhttp.New(environment))
