@@ -20,3 +20,16 @@ func TestInterpolate(t *testing.T) {
 	assert.Equal(int(15155870), scope.Get(`a`))
 	assert.Equal(`test test 1 2 3 15155870`, scope.Interpolate(`test test {x} {y} {z} {a}`))
 }
+
+func TestIsEmpty(t *testing.T) {
+	assert := require.New(t)
+
+	assert.True(isEmpty(nil))
+	assert.True(isEmpty(new(emptyValue)))
+	assert.True(isEmpty(emptyValue(0)))
+
+	assert.False(isEmpty([]string{`thing`}))
+	assert.False(isEmpty(map[string]any{
+		`a`: `thing`,
+	}))
+}

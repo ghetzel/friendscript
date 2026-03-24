@@ -195,7 +195,7 @@ func (self *Commands) Wait(delay any) error {
 		return fmt.Errorf("invalid duration: %v", err)
 	}
 
-	log.Infof("Waiting for %v", duration)
+	log.Debugf("Waiting for %v", duration)
 	time.Sleep(duration)
 	return nil
 }

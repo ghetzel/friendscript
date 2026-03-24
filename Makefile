@@ -8,8 +8,8 @@ GO111MODULE  = on
 all: fmt deps test
 
 fmt:
-	gofmt -w $(LOCALS)
-	go generate -x ./...
+	@go fmt ./...
+	@go generate -x ./...
 
 deps:
 	@which peg || go get github.com/pointlander/peg
@@ -18,7 +18,7 @@ deps:
 	go vet ./...
 
 test: fmt deps
-	go test ./...
+	@go test ./...
 
 examples: $(EXAMPLES)
 
