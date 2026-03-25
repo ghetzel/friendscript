@@ -11,7 +11,6 @@ Friendscript       <- _ SHEBANG? _ Block* !.
 _                  <- [ \t\r\n]*
 __                 <- [ \t\r\n]+
 ASSIGN             <- _ '->' _
-TRIQUOT            <- _ '"""' _
 BREAK              <- _ 'break' _
 CLOSE              <- _ '}' _
 COLON              <- _ ':' _
@@ -22,6 +21,8 @@ COUNT              <- _ 'count' _
 DECLARE            <- _ 'declare' __
 DOT                <- '.'
 ELSE               <- _ 'else' _
+GROUPCLOSE         <- _ ')' _
+GROUPOPEN          <- _ '(' _
 IF                 <- _ 'if' _
 IN                 <- __ 'in' __
 INCLUDE            <- _ 'include' __
@@ -29,12 +30,11 @@ LOOP               <- _ 'loop' _
 NOOP               <- SEMI
 NOT                <- _ 'not' __
 OPEN               <- _ '{' _
-SQOPEN             <- _ '[' _
-SQCLOSE            <- _ ']' _
 SCOPE              <- '::'
 SEMI               <- _ ';' _
 SHEBANG            <- '#!' [^\n]+ [\n]
 SKIPVAR            <- _ '_' _
+TRIQUOT            <- _ '"""' _
 UNSET              <- _ 'unset' __
 
 # Data Types
@@ -203,10 +203,10 @@ ExpressionRHS
     <- ( Operator Expression )
 
 InlineCommand
-    <- SQOPEN Command SQCLOSE
+    <- GROUPOPEN Command GROUPCLOSE
 
 ValueYielding
-    <- ( Type / Variable )
+    <- ( InlineCommand / Type / Variable )
 
 # Directive
 # -------------------------------------------------------------------------------------------------
@@ -310,7 +310,7 @@ ConditionWithComparator
     <- ConditionWithComparatorLHS ConditionWithComparatorRHS?
 
 ConditionWithComparatorLHS
-    <- ( InlineCommand / Expression )
+    <- Expression
 
 ConditionWithComparatorRHS
     <- ComparisonOperator Expression

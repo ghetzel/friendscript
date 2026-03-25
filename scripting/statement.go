@@ -54,6 +54,10 @@ func (self StatementType) String() string {
 	}
 }
 
+func (self *Statement) Env() Commandable {
+	return self.Script().Scope().Env()
+}
+
 func (self *Statement) SourceContext() *Context {
 	if self.ctx == nil {
 		self.ctx = &Context{
@@ -67,6 +71,10 @@ func (self *Statement) SourceContext() *Context {
 	}
 
 	return self.ctx
+}
+
+func (self *Statement) String() string {
+	return self.node.String()
 }
 
 func (self *Statement) Script() *Friendscript {
@@ -136,7 +144,7 @@ func (self *Statement) Type() StatementType {
 			return ExpressionStatement
 		case ruleLoop:
 			return LoopStatement
-		case ruleCommand:
+		case ruleCommand, ruleInlineCommand:
 			return CommandStatement
 		case ruleConditional:
 			return ConditionalStatement
@@ -260,8 +268,13 @@ func (self *Statement) parseArray(node *node32) ([]any, error) {
 	return output, nil
 }
 
+func (self *Statement) evaluateCommand(node *node32) (any, error) {
+	var _, v, err = self.Env().ExecuteCommand(NewCommand(self, node))
+	return v, err
+}
+
 func (self *Statement) parseValue(node *node32) (any, error) {
-	value := node.first(
+	var value = node.first(
 		ruleArray,
 		ruleObject,
 		ruleExpression,
@@ -275,6 +288,9 @@ func (self *Statement) parseValue(node *node32) (any, error) {
 	switch value.rule() {
 	case ruleIdentifier:
 		return self.s(node), nil
+
+	case ruleInlineCommand, ruleCommand:
+		return self.evaluateCommand(node)
 
 	case ruleExpression:
 		return NewExpression(self, value).Value()

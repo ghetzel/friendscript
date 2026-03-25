@@ -34,19 +34,19 @@ func (self *Expression) String() string {
 }
 
 func (self *Expression) Value() (any, error) {
-	if lhs := self.node.first(ruleExpressionLHS); lhs != nil {
-		if value, err := self.resolveValue(lhs.firstChild(ruleValueYielding)); err == nil {
-			if rhs := self.node.first(ruleExpressionRHS); rhs != nil {
-				if op, err := parseOperator(rhs.firstChild(ruleOperator)); err == nil {
-					if exprNode := rhs.firstChild(ruleExpression); exprNode != nil {
+	// example: if "x" == "y"
+
+	if lhs := self.node.first(ruleExpressionLHS); lhs != nil { // if "x"
+		if value, err := self.resolveValue(lhs.firstChild(ruleValueYielding)); err == nil { // "x"
+			if rhs := self.node.first(ruleExpressionRHS); rhs != nil { // == "y"
+				if op, err := parseOperator(rhs.firstChild(ruleOperator)); err == nil { // ==
+					if exprNode := rhs.firstChild(ruleExpression); exprNode != nil { // "y"
 						return op.evaluate(value, NewExpression(self.statement, exprNode))
 					}
 				} else if op != opNull {
 					return new(emptyValue), err
 				}
 			}
-
-			// log.Debugf("EXPR %T(%v)", value, value)
 			return value, nil
 		} else {
 			return nil, fmt.Errorf("invalid value: %v", err)
@@ -57,10 +57,11 @@ func (self *Expression) Value() (any, error) {
 }
 
 func (self *Expression) resolveValue(node *node32) (any, error) {
-	// expand variables
-	if varNode := node.firstN(1, ruleVariable); varNode != nil {
+	if cmdNode := node.firstN(1, ruleInlineCommand, ruleCommand); cmdNode != nil { // evaluate commands to retrieve value
+		return self.statement.evaluateCommand(cmdNode)
+	} else if varNode := node.firstN(1, ruleVariable); varNode != nil { // expand variable to reach final value
 		return self.statement.resolveVariable(varNode)
-	} else if typeNode := node.firstN(1, ruleType); typeNode != nil {
+	} else if typeNode := node.firstN(1, ruleType); typeNode != nil { // use the literal value
 		return self.statement.parseValue(typeNode)
 	} else {
 		return nil, fmt.Errorf("invalid value argument '%v'", self.statement.raw(node))

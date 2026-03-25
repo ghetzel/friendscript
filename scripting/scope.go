@@ -2,6 +2,7 @@ package scripting
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
@@ -25,6 +26,7 @@ var UnqualifiedModuleName = `core`
 type tracer int
 
 type Scope struct {
+	Environment    Commandable
 	parent         *Scope
 	data           map[string]any
 	isolatedReads  bool
@@ -53,6 +55,16 @@ func NewIsolatedScope(parent *Scope) *Scope {
 	scope.isolatedReads = true
 	scope.isolatedWrites = true
 	return scope
+}
+
+func (self *Scope) Env() Commandable {
+	if self.Environment != nil {
+		return self.Environment
+	} else if self.parent != nil {
+		return self.parent.Env()
+	} else {
+		return new(NullCommand)
+	}
 }
 
 func (self *Scope) Level() int {
@@ -272,4 +284,16 @@ func IsEmpty(in any) bool {
 	}
 
 	return false
+}
+
+type Commandable interface {
+	ExecuteCommand(command *Command) (string, any, error)
+}
+
+type NullCommand struct {
+	Commandable
+}
+
+func (n *NullCommand) ExecuteCommand(command *Command) (string, any, error) {
+	return ``, nil, fmt.Errorf("no command interface found")
 }

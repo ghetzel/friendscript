@@ -392,7 +392,8 @@ func TestConditionals(t *testing.T) {
 		`if_cmd_1`:       true,
 		`if_cmd_2`:       true,
 		`if_cmd_3`:       true,
-		// `if_cmd_4`:       true,
+		`if_cmd_4`:       true,
+		`if_cmd_5`:       true,
 	}
 
 	script := `
@@ -447,18 +448,18 @@ func TestConditionals(t *testing.T) {
         if not $string =~ /strong/i      { $if_not_match_4 = true }
         if not $string =~ /String/       { $if_not_match_5 = true }
         if not $string =~ /^ring$/       { $if_not_match_6 = true }
-		if [fmt::pascalize "hello-there"] == "HelloThere" { $if_cmd_1 = true }
+		if (fmt::pascalize "hello-there") == "HelloThere" { $if_cmd_1 = true }
 
-		if [fmt::trim " --lol-- " {
-			prefix: "--",
-		}] == "lol-- " { $if_cmd_2 = true }
+		if (fmt::snakeify "HelloThere") == "hello-there" { $if_cmd_2 = true }
 
+		if (fmt::format "<%v>" {
+			data: "hi",
+		}) == "<hi>" { $if_cmd_3 = true }
 
-		if [fmt::trim " --lol-- " {
-			prefix: "--",
-		}] == "--lol--" { $if_cmd_3 = true }
+		if (fmt::pascalize "hello-there") { $if_cmd_4 = true }
 
-		#if [fmt::pascalize "hello-there"] == [fmt::snakeify "HelloThere"] { $if_cmd_4 = true }`
+		if (fmt::pascalize "hello-there") == (fmt::pascalize "HelloThere") { $if_cmd_5 = true }
+		`
 
 	actual, err := eval(script)
 	assert.NoError(err)

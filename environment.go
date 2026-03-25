@@ -275,6 +275,7 @@ func (self *Environment) Evaluate(script *scripting.Friendscript, scope ...*scri
 		rootScope = self.Scope()
 	}
 
+	rootScope.Environment = self
 	self.script = script
 	self.pushScope(rootScope)
 
@@ -517,7 +518,7 @@ func (self *Environment) evaluateStatement(statement *scripting.Statement) error
 		return self.evaluateLoop(statement.Loop())
 
 	case scripting.CommandStatement:
-		_, err := self.evaluateCommand(statement.Command(), false)
+		_, _, err := self.evaluateCommand(statement.Command(), false)
 		return err
 
 	case scripting.NoOpStatement:
@@ -599,12 +600,17 @@ func (self *Environment) evaluateDirective(directive *scripting.Directive) error
 	return nil
 }
 
-func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclare bool) (string, error) {
+// make this an interface scripting.Commandable{}, use it to let scripting statements call commands
+func (self *Environment) ExecuteCommand(command *scripting.Command) (string, any, error) {
+	return self.evaluateCommand(command, true)
+}
+
+func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclare bool) (string, any, error) {
 	var modname, name = command.Name()
 
 	// prevent the execution of disabled commands
 	if reject, _ := self.filterCommands[modname+scripting.CommandSeparator+name]; reject {
-		return ``, fmt.Errorf("Execution of the %s::%s command has been disabled", modname, name)
+		return ``, nil, fmt.Errorf("Execution of the %s::%s command has been disabled", modname, name)
 	}
 
 	log.Debugf("EXEC %v::%v", modname, name)
@@ -635,10 +641,10 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 
 					evalscope.Set(resultVar, result)
 
-					return resultVar, nil
+					return resultVar, result, nil
 				}
 
-				return ``, nil
+				return ``, result, nil
 			} else {
 				ctx.Error = err
 			}
@@ -650,7 +656,7 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 	}
 
 	self.sendContextUpdate(ctx, true)
-	return ``, ctx.Error
+	return ``, nil, ctx.Error
 }
 
 func (self *Environment) evaluateConditional(conditional *scripting.Conditional) (bool, error) {
@@ -674,7 +680,7 @@ func (self *Environment) evaluateConditional(conditional *scripting.Conditional)
 	case scripting.ConditionWithCommand:
 		command, condition := conditional.WithCommand()
 
-		if _, err := self.evaluateCommand(command, true); err == nil {
+		if _, _, err := self.evaluateCommand(command, true); err == nil {
 			result := condition.IsTrue()
 			blocks, takeTrueBranch = self.evaluateConditionalGetBranch(conditional, result)
 		} else {
@@ -854,7 +860,7 @@ func (self *Environment) evaluateLoopIterationStart(loop *scripting.Loop, scope 
 			cmd.SetOutputNameOverride(scripting.DefaultIteratorCommandResultVariableName)
 		}
 
-		if resultVar, err := self.evaluateCommand(cmd, true); err == nil {
+		if resultVar, _, err := self.evaluateCommand(cmd, true); err == nil {
 			sourceVar = resultVar
 		} else {
 			return ``, nil, err
