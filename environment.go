@@ -142,7 +142,7 @@ func (self *Environment) DisableCommand(module string, cmdname string) {
 		module = scripting.UnqualifiedModuleName
 	}
 
-	self.filterCommands[module+`::`+cmdname] = true
+	self.filterCommands[module+scripting.CommandSeparator+cmdname] = true
 }
 
 // Specify a command that should be permitted to execute.
@@ -151,7 +151,7 @@ func (self *Environment) EnableCommand(module string, cmdname string) {
 		module = scripting.UnqualifiedModuleName
 	}
 
-	delete(self.filterCommands, module+`::`+cmdname)
+	delete(self.filterCommands, module+scripting.CommandSeparator+cmdname)
 }
 
 // List all commands supported by all registered modules.
@@ -160,7 +160,7 @@ func (self *Environment) Commands() []string {
 
 	for name, module := range self.Modules() {
 		for _, cmdname := range utils.ListModuleCommands(module) {
-			fullname := name + `::` + cmdname
+			fullname := name + scripting.CommandSeparator + cmdname
 
 			if _, ok := self.filterCommands[fullname]; !ok {
 				commands = append(commands, fullname)
@@ -603,7 +603,7 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 	var modname, name = command.Name()
 
 	// prevent the execution of disabled commands
-	if reject, _ := self.filterCommands[modname+`::`+name]; reject {
+	if reject, _ := self.filterCommands[modname+scripting.CommandSeparator+name]; reject {
 		return ``, fmt.Errorf("Execution of the %s::%s command has been disabled", modname, name)
 	}
 
@@ -655,7 +655,7 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 
 func (self *Environment) evaluateConditional(conditional *scripting.Conditional) (bool, error) {
 	var blocks = make([]*scripting.Block, 0)
-	var trueBranch bool
+	var takeTrueBranch bool
 	var conditionScope = scripting.NewScope(self.Scope())
 	self.pushScope(conditionScope)
 	defer self.popScope()
@@ -666,9 +666,9 @@ func (self *Environment) evaluateConditional(conditional *scripting.Conditional)
 
 		if err := self.evaluateAssignment(assignment, true); err == nil {
 			result := condition.IsTrue()
-			blocks, trueBranch = self.evaluateConditionalGetBranch(conditional, result)
+			blocks, takeTrueBranch = self.evaluateConditionalGetBranch(conditional, result)
 		} else {
-			return trueBranch, err
+			return takeTrueBranch, err
 		}
 
 	case scripting.ConditionWithCommand:
@@ -676,38 +676,38 @@ func (self *Environment) evaluateConditional(conditional *scripting.Conditional)
 
 		if _, err := self.evaluateCommand(command, true); err == nil {
 			result := condition.IsTrue()
-			blocks, trueBranch = self.evaluateConditionalGetBranch(conditional, result)
+			blocks, takeTrueBranch = self.evaluateConditionalGetBranch(conditional, result)
 		} else {
-			return trueBranch, err
+			return takeTrueBranch, err
 		}
 
 	case scripting.ConditionWithRegex:
 		expression, matchOp, rx := conditional.WithRegex()
 		result := matchOp.Evaluate(rx, expression)
-		blocks, trueBranch = self.evaluateConditionalGetBranch(conditional, result)
+		blocks, takeTrueBranch = self.evaluateConditionalGetBranch(conditional, result)
 
 	case scripting.ConditionWithComparator:
 		lhs, cmp, rhs := conditional.WithComparator()
 
 		result := cmp.Evaluate(lhs, rhs)
-		blocks, trueBranch = self.evaluateConditionalGetBranch(conditional, result)
+		blocks, takeTrueBranch = self.evaluateConditionalGetBranch(conditional, result)
 
 	default:
-		return trueBranch, fmt.Errorf("Unrecognized Conditional type")
+		return takeTrueBranch, fmt.Errorf("Unrecognized Conditional type")
 	}
 
 	for _, block := range blocks {
 		if err := self.evaluateBlock(block); err != nil {
-			return trueBranch, err
+			return takeTrueBranch, err
 		}
 	}
 
-	return trueBranch, nil
+	return takeTrueBranch, nil
 }
 
 func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Conditional, result bool) ([]*scripting.Block, bool) {
 	var blocks = make([]*scripting.Block, 0)
-	var trueBranch bool
+	var takeTrueBranch bool
 
 	if conditional.IsNegated() {
 		result = !result
@@ -716,7 +716,7 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 	if result {
 		// log.Debugf("IF branch")
 		blocks = conditional.IfBlocks()
-		trueBranch = true
+		takeTrueBranch = true
 	} else {
 		var tookElifBranch bool
 
@@ -740,7 +740,7 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 		}
 	}
 
-	return blocks, trueBranch
+	return blocks, takeTrueBranch
 }
 
 func (self *Environment) evaluateLoop(loop *scripting.Loop) error {

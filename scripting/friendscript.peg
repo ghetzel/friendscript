@@ -29,6 +29,8 @@ LOOP               <- _ 'loop' _
 NOOP               <- SEMI
 NOT                <- _ 'not' __
 OPEN               <- _ '{' _
+SQOPEN             <- _ '[' _
+SQCLOSE            <- _ ']' _
 SCOPE              <- '::'
 SEMI               <- _ ';' _
 SHEBANG            <- '#!' [^\n]+ [\n]
@@ -200,6 +202,9 @@ ExpressionLHS
 ExpressionRHS
     <- ( Operator Expression )
 
+InlineCommand
+    <- SQOPEN Command SQCLOSE
+
 ValueYielding
     <- ( Type / Variable )
 
@@ -305,8 +310,7 @@ ConditionWithComparator
     <- ConditionWithComparatorLHS ConditionWithComparatorRHS?
 
 ConditionWithComparatorLHS
-    <- Expression
+    <- ( InlineCommand / Expression )
 
 ConditionWithComparatorRHS
-    <- ( ComparisonOperator Expression )
-
+    <- ComparisonOperator Expression

@@ -14,6 +14,13 @@ type Command struct {
 	overrideResultVarName string
 }
 
+func NewCommand(statement *Statement, node *node32) *Command {
+	return &Command{
+		statement: statement,
+		node:      node,
+	}
+}
+
 func (self *Command) SourceContext() *Context {
 	if self.ctx == nil {
 		mod, name := self.Name()
@@ -55,7 +62,7 @@ func (self *Command) String() string {
 	module, name := self.Name()
 
 	if module != UnqualifiedModuleName {
-		name = module + `::` + name
+		name = module + CommandSeparator + name
 	}
 
 	if output := self.OutputName(); output == `` {
@@ -94,8 +101,8 @@ func (self *Command) Name() (string, string) {
 	cmdname := self.statement.raw(ident)
 	modname := UnqualifiedModuleName
 
-	if strings.Contains(cmdname, `::`) {
-		modname, cmdname = stringutil.SplitPair(cmdname, `::`)
+	if strings.Contains(cmdname, CommandSeparator) {
+		modname, cmdname = stringutil.SplitPair(cmdname, CommandSeparator)
 	}
 
 	return modname, cmdname

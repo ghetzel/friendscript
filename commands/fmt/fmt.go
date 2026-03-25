@@ -148,6 +148,11 @@ func (self *Commands) Underscore(input any) (string, error) {
 	return stringutil.Underscore(typeutil.V(input).String()), nil
 }
 
+// Return the given string converted to snake-case.
+func (self *Commands) Snakeify(input any) (string, error) {
+	return stringutil.Hyphenate(typeutil.V(input).String()), nil
+}
+
 // Return the given string converted to UPPERCASE.
 func (self *Commands) Upper(input any) (string, error) {
 	return strings.ToUpper(typeutil.V(input).String()), nil

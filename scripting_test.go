@@ -389,6 +389,10 @@ func TestConditionals(t *testing.T) {
 		`if_not_match_4`: true,
 		`if_not_match_5`: true,
 		`if_not_match_6`: true,
+		`if_cmd_1`:       true,
+		`if_cmd_2`:       true,
+		`if_cmd_3`:       true,
+		// `if_cmd_4`:       true,
 	}
 
 	script := `
@@ -442,7 +446,19 @@ func TestConditionals(t *testing.T) {
         if not $string !~ /.*/           { $if_match_6     = true }
         if not $string =~ /strong/i      { $if_not_match_4 = true }
         if not $string =~ /String/       { $if_not_match_5 = true }
-        if not $string =~ /^ring$/       { $if_not_match_6 = true }`
+        if not $string =~ /^ring$/       { $if_not_match_6 = true }
+		if [fmt::pascalize "hello-there"] == "HelloThere" { $if_cmd_1 = true }
+
+		if [fmt::trim " --lol-- " {
+			prefix: "--",
+		}] == "lol-- " { $if_cmd_2 = true }
+
+
+		if [fmt::trim " --lol-- " {
+			prefix: "--",
+		}] == "--lol--" { $if_cmd_3 = true }
+
+		#if [fmt::pascalize "hello-there"] == [fmt::snakeify "HelloThere"] { $if_cmd_4 = true }`
 
 	actual, err := eval(script)
 	assert.NoError(err)

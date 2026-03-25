@@ -17,6 +17,8 @@ import (
 	"github.com/ghetzel/go-stockutil/typeutil"
 )
 
+const CommandSeparator = `::`
+
 var rxPegContext = regexp.MustCompile(`(?P<message>.*) \(line (?P<line>\d+) symbol (?P<symbol>\d+)(?: - line (?P<eline>\d+) symbol (?P<esymbol>\d+))?`)
 var errContextLinesBefore = 3
 var errContextLinesAfter = 3

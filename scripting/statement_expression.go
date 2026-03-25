@@ -60,7 +60,6 @@ func (self *Expression) resolveValue(node *node32) (any, error) {
 	// expand variables
 	if varNode := node.firstN(1, ruleVariable); varNode != nil {
 		return self.statement.resolveVariable(varNode)
-
 	} else if typeNode := node.firstN(1, ruleType); typeNode != nil {
 		return self.statement.parseValue(typeNode)
 	} else {
