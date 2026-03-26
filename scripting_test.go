@@ -542,6 +542,7 @@ func TestLoops(t *testing.T) {
 		`m3`:   `third:3`,
 		`sum1`: int(11),
 		`sum2`: int(11),
+		`sum3`: int(11),
 	}
 
 	script := `
@@ -615,6 +616,18 @@ func TestLoops(t *testing.T) {
 				log "index {index}"
 				$sum2 = $sum2 + $x
 			}
+        }
+
+		$sum3 = 0
+
+        loop $x in $things {
+			if $index == 3 {
+				log "skip {index}"
+				continue
+			}
+
+			log "index {index}"
+			$sum3 = $sum3 + $x
         }
 		`
 
