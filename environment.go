@@ -365,7 +365,7 @@ func (self *Environment) REPL() (*scripting.Scope, error) {
 		prompt.OptionPrefix(self.Name + `> `),
 	}
 
-	exec := func(line string) {
+	var exec = func(line string) {
 		if handled, err := self.evaluateReplBuiltin(line); handled {
 			if err != nil {
 				fmt.Println(err.Error())
@@ -777,8 +777,6 @@ func (self *Environment) evaluateLoop(loop *scripting.Loop) error {
 LoopEval:
 	for {
 		if i, proceed := loop.Iterate(); proceed {
-			log.Noticef("DEBUG: Env.Iterate(%d)", i)
-
 			if loop.Type() == scripting.IteratorLoop {
 				var iterVector = loopScope.Get(sourceVar)
 
@@ -827,11 +825,8 @@ LoopEval:
 			loopScope.Set(`index0`, i-1)
 
 			for _, block := range loop.Blocks() {
-				log.Noticef("DEBUG: block %v", block)
-
 				if err := self.evaluateBlock(block); err != nil {
 					if fc, ok := err.(*scripting.FlowControlErr); ok {
-						log.Noticef("DEBUG: flow control %v", fc)
 						if fc.Level <= 0 {
 							return fc
 						} else if fc.Level == 1 {
