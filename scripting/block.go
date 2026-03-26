@@ -56,7 +56,11 @@ func (self *Block) Script() *Friendscript {
 }
 
 func (self *Block) String() string {
-	return fmt.Sprintf("%v (%d children)", self.Type(), len(self.node.children()))
+	if n := self.node; n == nil {
+		return fmt.Sprintf("%v (%d children)", self.Type(), len(self.node.children()))
+	} else {
+		return self.friendscript.s(n)
+	}
 }
 
 func (self *Block) Type() BlockType {

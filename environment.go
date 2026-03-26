@@ -476,16 +476,7 @@ func (self *Environment) popScope() *scripting.Scope {
 }
 
 func (self *Environment) evaluateBlock(block *scripting.Block) error {
-	log.Debug(strings.Repeat("-", 70))
-
 	switch block.Type() {
-	case scripting.StatementBlock:
-		for _, statement := range block.Statements() {
-			if err := self.evaluateStatement(statement); err != nil {
-				return err
-			}
-		}
-
 	case scripting.EventHandlerBlock:
 		return fmt.Errorf("Not Implemented")
 
@@ -496,6 +487,13 @@ func (self *Environment) evaluateBlock(block *scripting.Block) error {
 			return scripting.NewFlowControl(scripting.FlowContinue, levels)
 		} else {
 			return fmt.Errorf("invalid flow control statement")
+		}
+
+	case scripting.StatementBlock:
+		for _, statement := range block.Statements() {
+			if err := self.evaluateStatement(statement); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -535,11 +533,11 @@ func (self *Environment) evaluateAssignment(assignment *scripting.Assignment, fo
 	// clear out all the left-hand side variables (if there isn't already one in this scope)
 	if assignment.Operator.ShouldPreclear() {
 		for _, lhs := range assignment.LeftHandSide {
-			if !self.Scope().IsLocal(lhs) {
+			if scope := self.Scope(); !scope.IsLocal(lhs) {
 				if forceDeclare {
-					self.Scope().Declare(lhs)
-				} else {
-					self.Scope().Set(lhs, nil)
+					scope.Declare(lhs)
+				} else if !scope.SkipPreclear { // this line is erasing variables in a loop before performing the RHS eval
+					scope.Set(lhs, nil)
 				}
 			}
 		}
@@ -613,7 +611,12 @@ func (self *Environment) evaluateCommand(command *scripting.Command, forceDeclar
 		return ``, nil, fmt.Errorf("Execution of the %s::%s command has been disabled", modname, name)
 	}
 
-	log.Debugf("EXEC %v::%v", modname, name)
+	if a, _, _ := command.Args(); a != nil {
+		log.Debugf("CMD %v::%v %v", modname, name, typeutil.JSON(a))
+	} else {
+		log.Debugf("CMD %v::%v", modname, name)
+	}
+
 	var ctx = command.SourceContext()
 	self.sendContextUpdate(ctx, false)
 
@@ -663,6 +666,9 @@ func (self *Environment) evaluateConditional(conditional *scripting.Conditional)
 	var blocks = make([]*scripting.Block, 0)
 	var takeTrueBranch bool
 	var conditionScope = scripting.NewScope(self.Scope())
+
+	conditionScope.SkipPreclear = true
+
 	self.pushScope(conditionScope)
 	defer self.popScope()
 
@@ -720,7 +726,6 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 	}
 
 	if result {
-		// log.Debugf("IF branch")
 		blocks = conditional.IfBlocks()
 		takeTrueBranch = true
 	} else {
@@ -729,7 +734,6 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 		for _, elif := range conditional.ElseIfConditions() {
 			if t, err := self.evaluateConditional(elif); err == nil {
 				if t {
-					// log.Debugf("ELSE-IF %d branch", ei)
 					tookElifBranch = true
 					blocks = elif.IfBlocks()
 					break
@@ -741,7 +745,6 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 		}
 
 		if !tookElifBranch {
-			// log.Debugf("ELSE branch")
 			blocks = conditional.ElseBlocks()
 		}
 	}
@@ -750,107 +753,113 @@ func (self *Environment) evaluateConditionalGetBranch(conditional *scripting.Con
 }
 
 func (self *Environment) evaluateLoop(loop *scripting.Loop) error {
-	var i int
 	var sourceVar string
 	var destVars []string
 	var loopScope = scripting.NewScope(self.Scope())
 
 	loopScope.Declare(`index`)
+	loopScope.Declare(`index0`)
+	loopScope.SkipPreclear = true
 
 	self.pushScope(loopScope)
 	defer self.popScope()
 
-	// if we have an iterator, we have to initialize the values
+	// if we have an iterator we have to retrieve the values
 	if loop.Type() == scripting.IteratorLoop {
 		if s, d, err := self.evaluateLoopIterationStart(loop, loopScope); err == nil {
 			sourceVar = s
 			destVars = d
-
-			log.Debugf("Iterator initialized: %v -> %v", sourceVar, destVars)
 		} else {
 			return err
 		}
 	}
 
-	// log.Debugf("LOOP BEGIN")
-
 LoopEval:
-	for loop.ShouldContinue() {
-		if loop.Type() == scripting.IteratorLoop {
-			iterVector := loopScope.Get(sourceVar)
+	for {
+		if i, proceed := loop.Iterate(); proceed {
+			log.Noticef("DEBUG: Env.Iterate(%d)", i)
 
-			if typeutil.IsMap(iterVector) {
-				remap := make([][]any, 0)
-				keys := maputil.StringKeys(iterVector)
-				sort.Strings(keys)
+			if loop.Type() == scripting.IteratorLoop {
+				var iterVector = loopScope.Get(sourceVar)
 
-				for _, key := range keys {
-					remap = append(remap, []any{
-						key,
-						maputil.Get(iterVector, key),
-					})
+				if typeutil.IsMap(iterVector) {
+					var remap = make([][]any, 0)
+					var keys = maputil.StringKeys(iterVector)
+					sort.Strings(keys)
+
+					for _, key := range keys {
+						remap = append(remap, []any{
+							key,
+							maputil.Get(iterVector, key),
+						})
+					}
+
+					iterVector = remap
 				}
 
-				iterVector = remap
-			}
+				if iterLen := sliceutil.Len(iterVector); i < iterLen {
+					if iterItem, ok := sliceutil.At(iterVector, i); ok {
+						var didSet bool
 
-			if iterLen := sliceutil.Len(iterVector); i < iterLen {
-				if iterItem, ok := sliceutil.At(iterVector, i); ok {
-					var didSet bool
-
-					if totalLhsCount := len(destVars); totalLhsCount > 1 {
-						if typeutil.IsArray(iterItem) {
-							for j, rhs := range sliceutil.Sliceify(iterItem) {
-								if j < totalLhsCount {
-									loopScope.Set(destVars[j], rhs)
-									didSet = true
+						if totalLhsCount := len(destVars); totalLhsCount > 1 {
+							if typeutil.IsArray(iterItem) {
+								for j, rhs := range sliceutil.Sliceify(iterItem) {
+									if j < totalLhsCount {
+										loopScope.Set(destVars[j], rhs)
+										didSet = true
+									}
 								}
 							}
 						}
-					}
 
-					if !didSet {
-						loopScope.Set(destVars[0], iterItem)
-					}
-				} else {
-					return fmt.Errorf("Failed to retrieve iterator item %d", i)
-				}
-			} else {
-				break
-			}
-		}
-
-		loopScope.Set(`index`, loop.CurrentIndex())
-
-		for _, block := range loop.Blocks() {
-			if err := self.evaluateBlock(block); err != nil {
-				if fc, ok := err.(*scripting.FlowControlErr); ok {
-					if fc.Level <= 0 {
-						return fc
-					} else if fc.Level == 1 {
-						if fc.Type == scripting.FlowContinue {
-							continue LoopEval
-						} else {
-							break LoopEval
+						if !didSet {
+							loopScope.Set(destVars[0], iterItem)
 						}
 					} else {
-						fc.Level = fc.Level - 1
-						return fc
+						return fmt.Errorf("Failed to retrieve iterator item %d", i)
 					}
 				} else {
-					return err
+					break
 				}
 			}
-		}
 
-		i += 1
+			loopScope.Set(`index`, i)
+			loopScope.Set(`index0`, i-1)
+
+			for _, block := range loop.Blocks() {
+				log.Noticef("DEBUG: block %v", block)
+
+				if err := self.evaluateBlock(block); err != nil {
+					if fc, ok := err.(*scripting.FlowControlErr); ok {
+						log.Noticef("DEBUG: flow control %v", fc)
+						if fc.Level <= 0 {
+							return fc
+						} else if fc.Level == 1 {
+							if fc.Type == scripting.FlowContinue {
+								continue LoopEval
+							} else {
+								break LoopEval
+							}
+						} else {
+							fc.Level = fc.Level - 1
+							return fc
+						}
+					} else {
+						return err
+					}
+				}
+			}
+
+		} else {
+			break
+		}
 	}
 
 	return nil
 }
 
 func (self *Environment) evaluateLoopIterationStart(loop *scripting.Loop, scope *scripting.Scope) (string, []string, error) {
-	destVars, source := loop.IteratableParts()
+	var destVars, source = loop.IteratableParts()
 	var sourceVar string
 
 	if cmd, ok := source.(*scripting.Command); ok {

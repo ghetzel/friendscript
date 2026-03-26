@@ -37,7 +37,9 @@ func (self *Expression) Value() (any, error) {
 	// example: if "x" == "y"
 
 	if lhs := self.node.first(ruleExpressionLHS); lhs != nil { // if "x"
-		if value, err := self.resolveValue(lhs.firstChild(ruleValueYielding)); err == nil { // "x"
+		if value, err := self.resolveValue(
+			lhs.firstChild(ruleValueYielding),
+		); err == nil { // "x"
 			if rhs := self.node.first(ruleExpressionRHS); rhs != nil { // == "y"
 				if op, err := parseOperator(rhs.firstChild(ruleOperator)); err == nil { // ==
 					if exprNode := rhs.firstChild(ruleExpression); exprNode != nil { // "y"

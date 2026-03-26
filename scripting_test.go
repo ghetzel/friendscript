@@ -537,9 +537,11 @@ func TestLoops(t *testing.T) {
 			`second`: float64(2),
 			`third`:  float64(3),
 		},
-		`m1`: `first:1`,
-		`m2`: `second:2`,
-		`m3`: `third:3`,
+		`m1`:   `first:1`,
+		`m2`:   `second:2`,
+		`m3`:   `third:3`,
+		`sum1`: int(11),
+		`sum2`: int(11),
 	}
 
 	script := `
@@ -593,11 +595,31 @@ func TestLoops(t *testing.T) {
             } else {
                 $m3 = "{k}:{v}"
             }
-        }`
+        }
 
-	actual, err := eval(script)
+		$sum1 = 0
+
+        loop $x in $things {
+			if $index != 3 {
+				$sum1 = $sum1 + $x
+			}
+        }
+
+		$sum2 = 0
+
+        loop $x in $things {
+			if $index == 3 {
+				log "skip {index}"
+				continue
+			} else {
+				log "index {index}"
+				$sum2 = $sum2 + $x
+			}
+        }
+		`
+
+	var actual, err = eval(script)
 	assert.NoError(err)
-	// fmt.Println(jsondiff(expected, actual))
 	assert.Equal(expected, actual)
 }
 

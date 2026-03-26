@@ -149,39 +149,32 @@ func (self *Loop) UpperBound() int {
 	return -1
 }
 
-func (self *Loop) CurrentIndex() int {
-	return self.iterations
-}
-
-func (self *Loop) Reset() {
-	self.iterations = -1
-}
-
-func (self *Loop) ShouldContinue() bool {
-	self.iterations += 1
+func (self *Loop) Iterate() (int, bool) {
+	defer func() {
+		self.iterations += 1
+	}()
 
 	switch self.Type() {
 	case InfiniteLoop:
-		return true
+		return self.iterations, true
 
 	case FixedLengthLoop:
 		if self.iterations < self.UpperBound() {
-			// log.Debugf("LOOP iteration %d < %d\n", self.iterations, self.UpperBound())
-			return true
+			return self.iterations, true
 		}
 
 	case IteratorLoop:
-		return true
+		return self.iterations, true
 
 	default:
 		log.Panicf("NI type=%v", self.Type())
 	}
 
-	return false
+	return self.iterations, false
 }
 
 func (self *Loop) Blocks() []*Block {
-	blocks := make([]*Block, 0)
+	var blocks = make([]*Block, 0)
 
 	for _, node := range self.statement.node.children(ruleBlock) {
 		blocks = append(blocks, &Block{
@@ -197,13 +190,16 @@ func (self *Loop) Blocks() []*Block {
 func (self *Loop) IteratableParts() ([]string, any) {
 	if self.Type() == IteratorLoop {
 		if node := self.statement.node.firstChild(ruleLoopConditionIterable); node != nil {
-			lhs := node.first(ruleLoopIterableLHS)
-			rhs := node.first(ruleLoopIterableRHS)
+			var lhs = node.first(ruleLoopIterableLHS)
+			var rhs = node.first(ruleLoopIterableRHS)
 
 			if lhs != nil && rhs != nil {
-				names := make([]string, 0)
+				var names = make([]string, 0)
 				var rightHand any
 
+				// handle left-hand side of assignment(s)
+				// $x, $y, $z = 1, 2, 3
+				//
 				for _, varNode := range lhs.first().children(ruleVariable) {
 					if key, err := self.statement.resolveVariableKey(varNode); err == nil {
 						names = append(names, key)

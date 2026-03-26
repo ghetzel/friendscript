@@ -12,3 +12,7 @@ type Assignment struct {
 func (self *Assignment) String() string {
 	return fmt.Sprintf("%v %v (%d expressions)", self.LeftHandSide, self.Operator, len(self.RightHandSide))
 }
+
+func (self *Assignment) Statement() *Statement {
+	return self.statement
+}

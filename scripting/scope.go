@@ -27,6 +27,7 @@ type tracer int
 
 type Scope struct {
 	Environment    Commandable
+	SkipPreclear   bool
 	parent         *Scope
 	data           map[string]any
 	isolatedReads  bool
@@ -231,9 +232,8 @@ func (self *Scope) get(key string, fallback ...any) (any, *Scope) {
 		// fmt.Printf("SGET scope(%d)[%v] -> %T(%v)\n", self.Level(), key, v, v)
 		return v, self
 	} else if self.parent != nil && !self.isolatedReads {
-		// fmt.Printf("SGET scope(%d)[%v] -> PARENT\n", self.Level(), key)
-
 		if v, scope := self.parent.get(key, fallback...); v != nil {
+			// fmt.Printf("SGET scope(%d)[%v] -> PARENT(%T)\n", self.Level(), key, v)
 			return v, scope
 		}
 	}

@@ -131,6 +131,18 @@ func (self *Statement) s(node *node32) string {
 	return ``
 }
 
+func (self *Statement) IsType(stype ...StatementType) bool {
+	var t = self.Type()
+
+	for _, st := range stype {
+		if st == t {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (self *Statement) Type() StatementType {
 	if self.block.Type() == StatementBlock {
 		switch self.node.rule() {
@@ -196,8 +208,7 @@ func (self *Statement) Conditional() *Conditional {
 func (self *Statement) Loop() *Loop {
 	if self.Type() == LoopStatement {
 		return &Loop{
-			statement:  self,
-			iterations: -1,
+			statement: self,
 		}
 	}
 

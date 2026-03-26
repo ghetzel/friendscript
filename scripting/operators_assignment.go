@@ -86,7 +86,7 @@ func (self AssignmentOperator) Evaluate(lhs any, rhs any) (any, error) {
 	if v, err := exprToValue(lhs); err == nil {
 		lhs = v
 	} else {
-		log.Panicf("malformed  left-hand expression: %v", err)
+		log.Panicf("malformed left-hand expression: %v", err)
 	}
 
 	if v, err := exprToValue(rhs); err == nil {
