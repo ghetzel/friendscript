@@ -358,7 +358,7 @@ func (self *Environment) replCompleter(d prompt.Document) []prompt.Suggest {
 }
 
 func (self *Environment) REPL() (*scripting.Scope, error) {
-	replScope := scripting.NewScope(nil)
+	var replScope = scripting.NewScope(nil)
 	var replErr error
 
 	var options = []prompt.Option{
@@ -379,7 +379,7 @@ func (self *Environment) REPL() (*scripting.Scope, error) {
 		}
 	}
 
-	repl := prompt.New(exec, self.replCompleter, options...)
+	var repl = prompt.New(exec, self.replCompleter, options...)
 	repl.Run()
 
 	return replScope, replErr

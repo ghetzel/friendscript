@@ -5,7 +5,7 @@ EXAMPLES    := $(shell ls -1 examples)
 .EXPORT_ALL_VARIABLES:
 GO111MODULE  = on
 
-all: fmt deps test
+all: fmt deps test build
 
 fmt:
 	@go fmt ./...
@@ -20,9 +20,17 @@ deps:
 test: fmt deps
 	@go test ./...
 
+bin:
+	@mkdir $(@)
+bin/friendscript:
+	@go build -o $(@) ./cmd/friendscript/
+
+build: bin bin/friendscript
+	@which friendscript 2> /dev/null && cp -v bin/friendscript `which friendscript` || true
+
 examples: $(EXAMPLES)
 
 $(EXAMPLES):
 	go build -o bin/example-$(basename $(@)) examples/$(@)/*.go
 
-.PHONY: build examples $(EXAMPLES)
+.PHONY: build bin/friendscript examples $(EXAMPLES)

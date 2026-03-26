@@ -25,6 +25,8 @@ github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
+github.com/ghetzel/cli v1.17.0 h1:gMbJBrjPMz7JRsYrcV7sK60HCqQxwI/xO8dEjP6Z1yk=
+github.com/ghetzel/cli v1.17.0/go.mod h1:Q+8sg5kp2RtKNJH7orf5ntfal6ol+XPGCYyRd5dEJm8=
 github.com/ghetzel/go-defaults v1.2.0 h1:U1T64bxhBc6nVZ68QXch1hoHq43h6isqgbvG7kxY9Uc=
 github.com/ghetzel/go-defaults v1.2.0/go.mod h1:xWhTgOoc4UNWT7sl3oyNFqtKzEbUKI9C3rqbwtwdxFw=
 github.com/ghetzel/go-stockutil v1.14.0 h1:csJu9Kpb0//9XV6S5dlfwLgycwrzcAHVzQptmdlTJJc=
