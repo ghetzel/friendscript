@@ -41,6 +41,8 @@ func (self *Commands) Log(message any) error {
 		return nil
 	} else if b, ok := message.([]byte); ok {
 		fmt.Printf("<%d bytes>\n", len(b))
+	} else if s := typeutil.String(message); strings.Contains(s, `${`) && strings.Contains(s, `}`) {
+		log.Cprintln(s)
 	} else if typeutil.IsScalar(reflect.ValueOf(message)) {
 		emoji.Printf("%v\n", message)
 	} else if data, err := json.MarshalIndent(message, ``, `  `); err == nil {
