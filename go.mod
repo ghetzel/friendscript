@@ -6,7 +6,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/ghetzel/cli v1.17.0
 	github.com/ghetzel/go-defaults v1.2.0
-	github.com/ghetzel/go-stockutil v1.14.2
+	github.com/ghetzel/go-stockutil v1.14.3
 	github.com/ghetzel/testify v1.4.1
 	github.com/kyokomi/emoji v2.2.4+incompatible
 	github.com/mcuadros/go-defaults v1.2.0

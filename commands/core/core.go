@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -20,6 +21,10 @@ import (
 	"github.com/kyokomi/emoji"
 	defaults "github.com/mcuadros/go-defaults"
 )
+
+func init() {
+	log.ColorExpressionTagRegexp = regexp.MustCompile(`(\[\[(?P<color>[^\]]+)\]\])`)
+}
 
 type Commands struct {
 	utils.Module
@@ -41,7 +46,7 @@ func (self *Commands) Log(message any) error {
 		return nil
 	} else if b, ok := message.([]byte); ok {
 		fmt.Printf("<%d bytes>\n", len(b))
-	} else if s := typeutil.String(message); strings.Contains(s, `${`) && strings.Contains(s, `}`) {
+	} else if s := typeutil.String(message); log.ColorExpressionTagRegexp.MatchString(s) {
 		log.Cprintln(s)
 	} else if typeutil.IsScalar(reflect.ValueOf(message)) {
 		emoji.Printf("%v\n", message)
