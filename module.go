@@ -1,7 +1,7 @@
 package friendscript
 
 import (
-	"github.com/ghetzel/friendscript/utils"
+	"go.gary.cool/friendscript/utils"
 )
 
 type Module = utils.Module

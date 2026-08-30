@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ghetzel/go-stockutil/log"
+	"go.gary.cool/go-stockutil/log"
 )
 
 type Expression struct {

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/ghetzel/friendscript/utils"
-	"github.com/ghetzel/go-stockutil/maputil"
-	"github.com/ghetzel/go-stockutil/sliceutil"
-	"github.com/ghetzel/go-stockutil/typeutil"
 	defaults "github.com/mcuadros/go-defaults"
+	"go.gary.cool/friendscript/utils"
+	"go.gary.cool/go-stockutil/maputil"
+	"go.gary.cool/go-stockutil/sliceutil"
+	"go.gary.cool/go-stockutil/typeutil"
 )
 
 type Commands struct {

@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/ghetzel/friendscript"
-	"github.com/ghetzel/friendscript/commands/core"
+	"go.gary.cool/friendscript"
+	"go.gary.cool/friendscript/commands/core"
 )
 
 type CoreCommands struct {

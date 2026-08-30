@@ -7,11 +7,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ghetzel/friendscript/utils"
-	"github.com/ghetzel/go-stockutil/executil"
-	"github.com/ghetzel/go-stockutil/log"
-	"github.com/ghetzel/go-stockutil/maputil"
-	"github.com/ghetzel/go-stockutil/typeutil"
+	"go.gary.cool/friendscript/utils"
+	"go.gary.cool/go-stockutil/executil"
+	"go.gary.cool/go-stockutil/log"
+	"go.gary.cool/go-stockutil/maputil"
+	"go.gary.cool/go-stockutil/typeutil"
 )
 
 // if unspecified, default to HTTPS.  This is probably in violation of some RFC,

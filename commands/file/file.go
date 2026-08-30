@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ghetzel/friendscript/utils"
 	defaults "github.com/mcuadros/go-defaults"
+	"go.gary.cool/friendscript/utils"
 )
 
 type Commands struct {

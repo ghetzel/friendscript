@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/ghetzel/friendscript/utils"
-	"github.com/ghetzel/go-stockutil/typeutil"
+	"go.gary.cool/friendscript/utils"
+	"go.gary.cool/go-stockutil/typeutil"
 )
 
 // Registers a new handler function that will be used for turning paths into writable streams.

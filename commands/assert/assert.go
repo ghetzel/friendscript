@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ghetzel/friendscript/utils"
-	defaults "github.com/ghetzel/go-defaults"
-	"github.com/ghetzel/go-stockutil/stringutil"
-	"github.com/ghetzel/go-stockutil/timeutil"
-	"github.com/ghetzel/go-stockutil/typeutil"
+	"go.gary.cool/friendscript/utils"
+	defaults "go.gary.cool/go-defaults"
+	"go.gary.cool/go-stockutil/stringutil"
+	"go.gary.cool/go-stockutil/timeutil"
+	"go.gary.cool/go-stockutil/typeutil"
 )
 
 type Commands struct {

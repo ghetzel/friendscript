@@ -9,13 +9,13 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/ghetzel/cli"
-	"github.com/ghetzel/friendscript"
-	"github.com/ghetzel/go-stockutil/fileutil"
-	"github.com/ghetzel/go-stockutil/log"
-	"github.com/ghetzel/go-stockutil/stringutil"
-	"github.com/ghetzel/go-stockutil/typeutil"
 	"github.com/pkg/errors"
+	"go.gary.cool/cli"
+	"go.gary.cool/friendscript"
+	"go.gary.cool/go-stockutil/fileutil"
+	"go.gary.cool/go-stockutil/log"
+	"go.gary.cool/go-stockutil/stringutil"
+	"go.gary.cool/go-stockutil/typeutil"
 	"golang.org/x/term"
 )
 

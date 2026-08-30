@@ -6,9 +6,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/ghetzel/friendscript/scripting"
-	"github.com/ghetzel/friendscript/utils"
 	"github.com/ghetzel/testify/require"
+	"go.gary.cool/friendscript/scripting"
+	"go.gary.cool/friendscript/utils"
 )
 
 var testJsonData = `{

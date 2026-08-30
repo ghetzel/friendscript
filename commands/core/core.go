@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ghetzel/friendscript/utils"
-	"github.com/ghetzel/go-stockutil/log"
-	"github.com/ghetzel/go-stockutil/sliceutil"
-	"github.com/ghetzel/go-stockutil/stringutil"
-	"github.com/ghetzel/go-stockutil/timeutil"
-	"github.com/ghetzel/go-stockutil/typeutil"
 	"github.com/kyokomi/emoji"
 	defaults "github.com/mcuadros/go-defaults"
+	"go.gary.cool/friendscript/utils"
+	"go.gary.cool/go-stockutil/log"
+	"go.gary.cool/go-stockutil/sliceutil"
+	"go.gary.cool/go-stockutil/stringutil"
+	"go.gary.cool/go-stockutil/timeutil"
+	"go.gary.cool/go-stockutil/typeutil"
 )
 
 func init() {

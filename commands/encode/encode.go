@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/ghetzel/friendscript/utils"
-	"github.com/ghetzel/go-defaults"
-	"github.com/ghetzel/go-stockutil/typeutil"
+	"go.gary.cool/friendscript/utils"
+	"go.gary.cool/go-defaults"
+	"go.gary.cool/go-stockutil/typeutil"
 	"gopkg.in/yaml.v2"
 )
 

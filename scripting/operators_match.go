@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/ghetzel/go-stockutil/log"
+	"go.gary.cool/go-stockutil/log"
 )
 
 type MatchOperator int

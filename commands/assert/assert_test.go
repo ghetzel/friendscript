@@ -3,8 +3,8 @@ package assert
 import (
 	"testing"
 
-	"github.com/ghetzel/go-stockutil/log"
 	"github.com/ghetzel/testify/require"
+	"go.gary.cool/go-stockutil/log"
 )
 
 func TestAssertExists(t *testing.T) {
